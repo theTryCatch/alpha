@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, Input, OnInit, Type } from '@angular/core';
+import { Component, HostListener, Input, OnInit, Type } from '@angular/core';
 import { Theme, ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
@@ -6,7 +6,6 @@ import { FaviconService } from '../services/favicon.service';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
-import { FooComponent } from '../foo/foo.component';
 
 @Component({
   selector: 'app-frame',
@@ -31,15 +30,17 @@ export class AppFrameComponent implements OnInit {
   public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
 
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
-  public rightSidenavState: SidebarStates = SidebarStates.closed;
+  public rightSidenavState: SidebarStates = SidebarStates.expanded;
   public isSmallScreen: boolean = false;
   userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
   dynamicComponent: any;
   constructor(
     private title: Title,
     private faviconService: FaviconService,
-    private cdr: ChangeDetectorRef
   ) {
+
+  }
+  ngOnInit(): void {
     this.updateSidenavState(window.innerWidth);
 
     if (this.config?.browserTitlebar.title) {
@@ -49,8 +50,6 @@ export class AppFrameComponent implements OnInit {
     if (this.config?.browserTitlebar.iconPath) {
       this.faviconService.changeFavicon(this.config?.browserTitlebar.iconPath);
     }
-  }
-  ngOnInit(): void {
   }
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -124,13 +123,15 @@ export class AppFrameComponent implements OnInit {
     if (this.isSmallScreen) {
       this.leftSidenavState = SidebarStates.closed;
       this.rightSidenavState = SidebarStates.closed;
-    } else if (screenWidth >= 640 && screenWidth < 1024) {
+    }
+    // Commenting out this code as this is overwriting the defaults specified. Keeping it for reference.
+    /* else if (screenWidth >= 640 && screenWidth < 1024) {
       this.leftSidenavState = SidebarStates.icons;
       this.rightSidenavState = SidebarStates.closed;
     } else {
       this.leftSidenavState = SidebarStates.expanded;
       this.rightSidenavState = SidebarStates.closed;
-    }
+    } */
   }
   onUserProfileMenuItemClick(_t36: IAppUserProfileMenuItem) {
     throw new Error('Method not implemented.');
@@ -152,9 +153,11 @@ export class AppFrameComponent implements OnInit {
     localStorage.setItem("ftui-app-frame-theme", theme)
   }
   onMenuItemClick(menuItem: ISidenavMenuItem) {
-    console.log(menuItem);
-    this.cdr.detectChanges();
-    this.dynamicComponent = menuItem.rightSidenavComponent;
+    if (menuItem) {
+      this.dynamicComponent = menuItem.rightSidenavComponent;
+    } else {
+      this.dynamicComponent = null;
+    }
   }
 }
 export interface IAppFrame {

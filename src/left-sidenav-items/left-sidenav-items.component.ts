@@ -22,14 +22,11 @@ export class LeftSidenavItemsComponent {
   public sidebarLeftPostion: SidebarPosition = SidebarPosition.left;
   public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
 
-  onItemClick(item: ISidenavMenuItem) {
-    if (item.rightSidenavComponent) {
+  emitMenuItemClick(item: ISidenavMenuItem) {
+    if (item?.rightSidenavComponent) {
       this.menuItemClicked.emit(item);
-    }
-  }
-  onMenuItemClick(item: ISidenavMenuItem) {
-    if (item.rightSidenavComponent) {
-      this.menuItemClicked.emit(item);
+    } else {
+      this.menuItemClicked.emit();
     }
   }
 }
