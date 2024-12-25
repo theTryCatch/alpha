@@ -1,6 +1,6 @@
 <li [class.text-primary]="config.children">
     <ng-container *ngIf="!config.children; else hasChildren">
-        <a [routerLink]="config.route">
+        <a [routerLink]="config.route" (click)="onItemClick(config)">
             <span *ngIf="sidebarStatus.currentState !== sidebarClosed"
                   class="material-icons !text-[1.8em] text-neutral">{{ config.googleIconName }}</span>
             <span *ngIf="sidebarStatus.currentState === sidebarExpanded" class="text-neutral">{{ config.label }}</span>
@@ -15,7 +15,8 @@
             </summary>
             <ul>
                 <left-sidenav-items *ngFor="let child of config.children" [config]="child"
-                                    [sidebarStatus]="sidebarStatus" />
+                                    [sidebarStatus]="sidebarStatus"
+                                    (menuItemClicked)="onMenuItemClick($event)"/>
             </ul>
         </details>
     </ng-template>

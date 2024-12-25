@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-foo',
+  selector: 'app-zoo',
   standalone: true,
   imports: [],
   template: `
     <p>
-      foo works! from foo component
+      zoo works!
     </p>
   `,
   styles: ``
 })
-export class FooComponent {
+export class ZooComponent {
 
 }

@@ -1,4 +1,4 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Input, OnInit, Type } from '@angular/core';
 import { Theme, ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
@@ -6,15 +6,22 @@ import { FaviconService } from '../services/favicon.service';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
+import { FooComponent } from '../foo/foo.component';
 
 @Component({
   selector: 'app-frame',
   standalone: true,
-  imports: [CommonModule, ThemeSelectorComponent, RouterOutlet, FormsModule, LeftSidenavItemsComponent],
+  imports: [
+    CommonModule,
+    ThemeSelectorComponent,
+    RouterOutlet,
+    FormsModule,
+    LeftSidenavItemsComponent
+  ],
   templateUrl: './app-frame.component.html',
   styles: ``
 })
-export class AppFrameComponent {
+export class AppFrameComponent implements OnInit {
   @Input({ required: true }) config?: IAppFrame;
 
   public sidebarClosed: SidebarStates = SidebarStates.closed;
@@ -27,10 +34,11 @@ export class AppFrameComponent {
   public rightSidenavState: SidebarStates = SidebarStates.closed;
   public isSmallScreen: boolean = false;
   userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
-
+  dynamicComponent: any;
   constructor(
     private title: Title,
     private faviconService: FaviconService,
+    private cdr: ChangeDetectorRef
   ) {
     this.updateSidenavState(window.innerWidth);
 
@@ -41,6 +49,8 @@ export class AppFrameComponent {
     if (this.config?.browserTitlebar.iconPath) {
       this.faviconService.changeFavicon(this.config?.browserTitlebar.iconPath);
     }
+  }
+  ngOnInit(): void {
   }
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -86,24 +96,24 @@ export class AppFrameComponent {
 
 
 
-
-    const logSidebarStatus = (status: ISidebarStatus): Record<string, any> => {
-      const enumMap: { [key: string]: any } = {
-        side: SidebarPosition,
-        currentState: SidebarStates,
-        nextState: SidebarStates,
-      };
-
-      return Object.entries(status).reduce((acc: Record<string, any>, [key, value]) => {
-        if (typeof value === "number" && enumMap[key]) {
-          acc[key] = enumMap[key][value]; // Map number to enum string
-        } else {
-          acc[key] = value;
-        }
-        return acc;
-      }, {}); // Initialize as a plain object
-    };
-    console.log(logSidebarStatus(resultTemp));
+    /* 
+        const logSidebarStatus = (status: ISidebarStatus): Record<string, any> => {
+          const enumMap: { [key: string]: any } = {
+            side: SidebarPosition,
+            currentState: SidebarStates,
+            nextState: SidebarStates,
+          };
+    
+          return Object.entries(status).reduce((acc: Record<string, any>, [key, value]) => {
+            if (typeof value === "number" && enumMap[key]) {
+              acc[key] = enumMap[key][value]; // Map number to enum string
+            } else {
+              acc[key] = value;
+            }
+            return acc;
+          }, {}); // Initialize as a plain object
+        };
+        console.log(logSidebarStatus(resultTemp)); */
 
 
 
@@ -140,6 +150,11 @@ export class AppFrameComponent {
   }
   onThemeChange(theme: Theme) {
     localStorage.setItem("ftui-app-frame-theme", theme)
+  }
+  onMenuItemClick(menuItem: ISidenavMenuItem) {
+    console.log(menuItem);
+    this.cdr.detectChanges();
+    this.dynamicComponent = menuItem.rightSidenavComponent;
   }
 }
 export interface IAppFrame {
@@ -179,5 +194,6 @@ export interface ISidenavMenuItem {
   label: string;
   route?: string;
   googleIconName?: string;
-  children?: ISidenavMenuItem[]; // Nested items for submenus
+  rightSidenavComponent?: Type<any>;
+  children?: ISidenavMenuItem[];
 }

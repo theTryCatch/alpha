@@ -3,6 +3,8 @@ import { RouterOutlet } from '@angular/router';
 import { AppFrameComponent, IAppFrame, ISidenavMenuItem } from '../app-frame/app-frame.component';
 import { CommonModule } from '@angular/common';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
+import { FooComponent } from '../foo/foo.component';
+import { ZooComponent } from '../zoo/zoo.component';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +20,14 @@ export class AppComponent {
     {
       "label": "A1z2b3c4",
       "googleIconName": "access_alarm",
-      "route": "foo"
+      "route": "foo",
+      rightSidenavComponent: FooComponent
+    },
+    {
+      "label": "Yarp2024",
+      "googleIconName": "settings",
+      "route": "foo",
+      rightSidenavComponent: ZooComponent
     },
     {
       "label": "B1c2d3e4",
@@ -28,7 +37,7 @@ export class AppComponent {
           "label": "R5s6t7u8",
           "googleIconName": "lock",
           "children": [
-            { "label": "F9g0h1i2", "googleIconName": "live_tv" },
+            { "label": "F9g0h1i2", "googleIconName": "live_tv", rightSidenavComponent: ZooComponent },
             { "label": "V1w2x3y4", "googleIconName": "mail" },
             { "label": "A4b5c6d7", "googleIconName": "map" }
           ]
@@ -87,6 +96,6 @@ export class AppComponent {
       userProfileImagePath: "ak.jpg"
     },
     leftSidenavMenuItems: this.sidenavMenuItems,
-    defaultTheme: 'MorganStanley_Dark'
+    defaultTheme: 'MorganStanley_Dark',
   };
 }

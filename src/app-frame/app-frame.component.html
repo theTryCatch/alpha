@@ -89,8 +89,7 @@
     <div class="flex flex-grow overflow-hidden" [style.paddingTop]="brandingbar.offsetHeight+'px'">
         <!-- Left sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-            *ngIf="config?.leftSidenavMenuItems"
-            [ngClass]="{
+             *ngIf="config?.leftSidenavMenuItems" [ngClass]="{
             'w-64': leftSidenavState === sidebarExpanded && !isSmallScreen,
             'w-40': leftSidenavState === sidebarIcons && !isSmallScreen,
             'w-full h-full': leftSidenavState === sidebarExpanded && isSmallScreen,
@@ -98,7 +97,8 @@
           }">
             <ul class="rounded-box menu p-0">
                 <left-sidenav-items *ngFor="let item of config?.leftSidenavMenuItems" [config]="item"
-                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)" />
+                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)"
+                                    (menuItemClicked)="onMenuItemClick($event)"/>
             </ul>
         </div>
 
@@ -127,23 +127,7 @@
             'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,
             'w-0 hidden': rightSidenavState === sidebarClosed
           }">
-            <ul class="p-4 space-y-4">
-                <li class="my-2">
-                    <a href="#" class="flex items-center space-x-4">
-                        <span class="iconify" data-icon="ic:baseline-dashboard"></span>
-                        <span *ngIf="rightSidenavState === sidebarExpanded || isSmallScreen">Dashboard</span>
-                    </a>
-                </li>
-                <li class="my-2">
-                    <a href="#" class="flex items-center space-x-4">
-                        <span class="iconify" data-icon="ic:baseline-person"></span>
-                        <span *ngIf="rightSidenavState === sidebarExpanded || isSmallScreen">Profile</span>
-                    </a>
-                </li>
-            </ul>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque a quibusdam repellendus ad consectetur.
-            Similique, nostrum. Omnis voluptates vero quas fugiat, ab modi, qui consequuntur sunt sit, ad tenetur
-            sapiente!
+            <ng-container *ngComponentOutlet="dynamicComponent"></ng-container>
         </div>
     </div>
     <!-- #endregion -->

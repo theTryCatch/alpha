@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, ViewChild, viewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, Output, Type, ViewChild, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AppFrameComponent, ISidebarStatus, ISidenavMenuItem, SidebarPosition, SidebarStates } from '../app-frame/app-frame.component';
 
@@ -14,10 +14,22 @@ import { AppFrameComponent, ISidebarStatus, ISidenavMenuItem, SidebarPosition, S
 export class LeftSidenavItemsComponent {
   @Input({ required: true }) config!: ISidenavMenuItem;
   @Input({ required: true }) sidebarStatus!: ISidebarStatus;
-  
+  @Output() menuItemClicked: EventEmitter<ISidenavMenuItem> = new EventEmitter<ISidenavMenuItem>();
+
   public sidebarClosed: SidebarStates = SidebarStates.closed;
   public sidebarExpanded: SidebarStates = SidebarStates.expanded;
   public sidebarIcons: SidebarStates = SidebarStates.icons;
   public sidebarLeftPostion: SidebarPosition = SidebarPosition.left;
   public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
+
+  onItemClick(item: ISidenavMenuItem) {
+    if (item.rightSidenavComponent) {
+      this.menuItemClicked.emit(item);
+    }
+  }
+  onMenuItemClick(item: ISidenavMenuItem) {
+    if (item.rightSidenavComponent) {
+      this.menuItemClicked.emit(item);
+    }
+  }
 }
