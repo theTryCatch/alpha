@@ -1,0 +1,22 @@
+<li [class.text-primary]="config.children">
+    <ng-container *ngIf="!config.children; else hasChildren">
+        <a [routerLink]="config.route">
+            <span *ngIf="sidebarStatus.currentState !== sidebarClosed"
+                  class="material-icons !text-[1.8em] text-neutral">{{ config.googleIconName }}</span>
+            <span *ngIf="sidebarStatus.currentState === sidebarExpanded" class="text-neutral">{{ config.label }}</span>
+        </a>
+    </ng-container>
+    <ng-template #hasChildren>
+        <details open>
+            <summary class="text-secondary font-bold">
+                <span *ngIf="sidebarStatus.currentState !== sidebarClosed"
+                      class="material-icons !text-[1.8em]">{{ config.googleIconName }}</span>
+                <span *ngIf="sidebarStatus.currentState === sidebarExpanded">{{ config.label }}</span>
+            </summary>
+            <ul>
+                <left-sidenav-items *ngFor="let child of config.children" [config]="child"
+                                    [sidebarStatus]="sidebarStatus" />
+            </ul>
+        </details>
+    </ng-template>
+</li>
