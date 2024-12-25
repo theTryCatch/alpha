@@ -7,7 +7,7 @@ import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-it
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AppFrameComponent, LeftSidenavItemsComponent, CommonModule],
+  imports: [AppFrameComponent, CommonModule],
   template: `
     <app-frame [config]="appFrame" />
   `,
