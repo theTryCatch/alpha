@@ -59,7 +59,24 @@ export class AppComponent {
               route: "foo",
               identity: "F9g0h1i2",
               googleIconName: "live_tv",
-              rightSidenavComponent: ZooComponent
+              children: [{
+                label: "V1w2x3y46",
+                tooltip: "V1w2x3y46",
+                route: "foo",
+                identity: "V1w2x3y4",
+                googleIconName: "mail",
+                children: [
+                  {
+                    label: "V1w2x3y45",
+                    tooltip: "V1w2x3y4",
+                    route: "foo",
+                    identity: "V1w2x3y45",
+                    googleIconName: "mail",
+                    rightSidenavComponent: ZooComponent
+                  }
+                ]
+              }]
+
             },
             {
               label: "V1w2x3y4",

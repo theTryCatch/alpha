@@ -1,87 +1,105 @@
 <div class="flex flex-col h-screen overflow-hidden">
     <!-- #region: Brandingbar -->
-    <nav class="bg-primary p-4 flex justify-between items-center fixed w-full top-0 z-50 !navbar" #brandingbar>
-        <div class="flex items-center gap-4">
+    <nav class="bg-primary flex flex-col fixed w-full top-0 z-50 !navbar" style="padding: 0px !important;" #brandingbar>
+        <div class="flex justify-between items-center w-full">
+            <div class="flex items-center gap-4">
+                <!-- #region: Left sidenav toggle button -->
+                <button class="flex items-center px-4 py-2 hover:bg-neutral rounded transition-colors"
+                        (click)="toggleSidenav(sidebarLeftPostion)">
+                    <ng-container *ngIf="leftSidenavState === sidebarClosed">
+                        <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px"
+                             viewBox="0 -960 960 960" width="24px">
+                            <path d="M360-120v-720h80v720h-80Zm160-160v-400l200 200-200 200Z" />
+                        </svg>
+                    </ng-container>
+                    <ng-container *ngIf="leftSidenavState === sidebarIcons">
+                        <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px"
+                             viewBox="0 -960 960 960" width="24px">
+                            <path d="M440-280v-400L240-480l200 200Zm80 160h80v-720h-80v720Z" />
+                        </svg>
+                    </ng-container>
+                    <ng-container *ngIf="leftSidenavState === sidebarExpanded">
+                        <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px"
+                             viewBox="0 -960 960 960" width="24px">
+                            <path
+                                  d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
+                        </svg>
+                    </ng-container>
+                </button>
+                <!-- #endregion -->
 
-            <!-- #region: Left sidenav toggle button -->
-            <button class="flex items-center px-4 py-2 hover:bg-neutral rounded transition-colors"
-                    (click)="toggleSidenav(sidebarLeftPostion)">
-                <ng-container *ngIf="leftSidenavState === sidebarClosed">
-                    <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                         width="24px">
-                        <path d="M360-120v-720h80v720h-80Zm160-160v-400l200 200-200 200Z" />
-                    </svg>
-                </ng-container>
-                <ng-container *ngIf="leftSidenavState === sidebarIcons">
-                    <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                         width="24px">
-                        <path d="M440-280v-400L240-480l200 200Zm80 160h80v-720h-80v720Z" />
-                    </svg>
-                </ng-container>
-                <ng-container *ngIf="leftSidenavState === sidebarExpanded">
-                    <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                         width="24px">
-                        <path
-                              d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
-                    </svg>
-                </ng-container>
-            </button>
-            <!-- #endregion -->
+                <!-- #region: Organization logo -->
+                <a class="btn btn-ghost normal-case text-xl hidden md:flex"><img
+                         [src]="config?.brandingbar?.organizationLogo" alt="User Profile Image"
+                         style="height: 25px;" /></a>
+                <!-- #endregion -->
 
-            <!-- #region: Organization logo -->
-            <a class="btn btn-ghost normal-case text-xl hidden md:flex"><img
-                     [src]="config?.brandingbar?.organizationLogo" alt="User Profile Image" style="height: 25px;" /></a>
-            <!-- #endregion -->
+                <!-- #region: Application name -->
+                <a
+                   class="text-secondary-content btn btn-ghost normal-case text-xl">{{config?.brandingbar?.applicationName}}</a>
+                <!-- #endregion -->
+            </div>
 
-            <!-- #region: Application name -->
-            <a
-               class="text-secondary-content btn btn-ghost normal-case text-xl">{{config?.brandingbar?.applicationName}}</a>
-            <!-- #endregion -->
+            <div class="flex items-center space-x-2">
+                <!-- #region: Theme selector -->
+                <app-theme-selector [initialTheme]="getInitialTheme()"
+                                    (themeChange)="onThemeChange($event)"></app-theme-selector>
+                <!-- #endregion  -->
 
+                <!-- #region: User profile image -->
+                <div class="dropdown dropdown-left z-40 hidden md:flex"
+                     *ngIf="config?.brandingbar?.userProfileImagePath">
+                    <button tabindex="0" class="btn btn-ghost btn-circle avatar">
+                        <div class="w-10 rounded-full">
+                            <img [src]="config?.brandingbar?.userProfileImagePath" alt="User Profile Image" />
+                        </div>
+                    </button>
+                    <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
+                        <li *ngFor="let item of userProfileMenuItems">
+                            <a (click)="onUserProfileMenuItemClick(item)">{{
+                                item.label
+                                }}</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- #endregion  -->
+
+                <!-- #region: Right sidenav toggle button -->
+                <button class="flex items-center px-4 py-2 hover:bg-neutral rounded transition-colors"
+                        [style.visibility]="dynamicComponent === undefined ? 'hidden' : 'visible'"
+                        (click)="toggleSidenav(sidebarRightPostion)">
+                    <ng-container *ngIf="rightSidenavState === sidebarClosed">
+                        <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px"
+                             viewBox="0 -960 960 960" width="24px">
+                            <path d="M440-280v-400L240-480l200 200Zm80 160h80v-720h-80v720Z" />
+                        </svg>
+                    </ng-container>
+                    <ng-container *ngIf="rightSidenavState === sidebarExpanded">
+                        <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px"
+                             viewBox="0 -960 960 960" width="24px">
+                            <path d="M360-120v-720h80v720h-80Zm160-160v-400l200 200-200 200Z" />
+                        </svg>
+                    </ng-container>
+                </button>
+                <!-- #endregion -->
+            </div>
         </div>
 
-        <div class="navbar-end flex items-center space-x-2">
-            <!-- #region: Theme selector -->
-            <app-theme-selector [initialTheme]="getInitialTheme()"
-                                (themeChange)="onThemeChange($event)"></app-theme-selector>
-            <!-- #endregion  -->
-
-            <!-- #region: User profile image -->
-            <div class="dropdown dropdown-left z-40 hidden md:flex" *ngIf="config?.brandingbar?.userProfileImagePath">
-                <button tabindex="0" class="btn btn-ghost btn-circle avatar">
-                    <div class="w-10 rounded-full">
-                        <img [src]="config?.brandingbar?.userProfileImagePath" alt="User Profile Image" />
-                    </div>
-                </button>
-                <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
-                    <li *ngFor="let item of userProfileMenuItems">
-                        <a (click)="onUserProfileMenuItemClick(item)">{{
-                            item.label
-                            }}</a>
-                    </li>
+        <!-- New third row div -->
+        <div class="flex flex-row items-center w-full m-0 pl-4 bg-primary-content min-h-[38px] border-b-2 border-b-base-300">
+            Path: &nbsp; 
+            <div class="breadcrumbs text-sm">
+                <ul>
+                    <ng-container *ngFor="let item of (getFullyQualifiedMenuItemPathTillParent()|async)">
+                        <li>
+                            <div class="flex gap-1 items-center">
+                                <span class="material-icons !text-[1em]">{{ item.googleIconName }}</span>
+                                {{item.label}}
+                            </div>
+                        </li>
+                    </ng-container>
                 </ul>
             </div>
-            <!-- #endregion  -->
-
-            <!-- #region: Right sidenav toggle button -->
-            <button class="flex items-center px-4 py-2 hover:bg-neutral rounded transition-colors"
-                    [style.visibility]="dynamicComponent === undefined ? 'hidden' : 'visible'"
-                    (click)="toggleSidenav(sidebarRightPostion)">
-                <ng-container *ngIf="rightSidenavState === sidebarClosed">
-                    <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                         width="24px">
-                        <path d="M440-280v-400L240-480l200 200Zm80 160h80v-720h-80v720Z" />
-                    </svg>
-                </ng-container>
-                <ng-container *ngIf="rightSidenavState === sidebarExpanded">
-                    <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                         width="24px">
-                        <path d="M360-120v-720h80v720h-80Zm160-160v-400l200 200-200 200Z" />
-                    </svg>
-                </ng-container>
-            </button>
-            <!-- #endregion -->
-
         </div>
     </nav>
     <!-- #endregion -->
@@ -113,7 +131,7 @@
 
         <!-- Right sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-             (blur)="rightSidenavState = sidebarClosed" *ngIf="dynamicComponent" [style.width]="getRightSidenavWidth()">
+             (blur)="rightSidenavState = sidebarClosed" *ngIf="dynamicComponent !== undefined" [style.width]="getRightSidenavWidth()">
             <!-- [ngClass]="{
                 'w-64': rightSidenavState === sidebarExpanded && !isSmallScreen,
                 'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,

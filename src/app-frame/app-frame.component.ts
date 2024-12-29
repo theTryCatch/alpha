@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnInit, Type } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Input, OnInit, Type } from '@angular/core';
 import { Theme, ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
@@ -6,6 +6,7 @@ import { FaviconService } from '../services/favicon.service';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
+import { map, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-frame',
@@ -37,7 +38,8 @@ export class AppFrameComponent implements OnInit {
   constructor(
     private title: Title,
     private faviconService: FaviconService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {
 
   }
@@ -160,18 +162,25 @@ export class AppFrameComponent implements OnInit {
     localStorage.setItem("ftui-app-frame-theme", theme)
   }
   onMenuItemClick(menuItem: ISidenavMenuItem) {
+    console.log("---- Menu item click - Start-----");
+
+    console.log("dynamicComponent is...", this.dynamicComponent);
+    console.log("menu item is...", menuItem);
+
+    console.log("---- Menu item click - End-----");
+
     if (menuItem) {
       this.dynamicComponent = menuItem.rightSidenavComponent;
-      if (this.rightSidenavState === SidebarStates.closed) {
-        this.rightSidenavState = SidebarStates.expanded;
-      }
+      this.rightSidenavState = SidebarStates.expanded;
     } else {
       this.dynamicComponent = undefined;
+      this.rightSidenavState = SidebarStates.closed;
     }
     if (this.isSmallScreen) {
       this.leftSidenavState = SidebarStates.closed;
       this.rightSidenavState = SidebarStates.closed;
     }
+    this.cdr.detectChanges();
   }
   getLeftSidenavWidth() {
     if (this.leftSidenavState === this.sidebarExpanded && !this.isSmallScreen) {
@@ -192,6 +201,17 @@ export class AppFrameComponent implements OnInit {
     } else {
       return '0px';
     }
+  }
+  getFullyQualifiedMenuItemPathTillParent(): Observable<ISidenavMenuItem[]> {
+    return this.route.queryParams.pipe(
+      map((id: any) => {
+        let path: ISidenavMenuItem[] = [];
+        findItemPath(this.config?.leftSidenavMenuItems, id['id'])?.forEach((item) => {
+          path.push(item);
+        });
+        return path;
+      })
+    );
   }
 }
 export interface IAppFrame {
@@ -241,4 +261,26 @@ export interface ISidenavMenuItem {
   tooltip: string;
   rightSidenavComponent?: Type<Component>;
   children?: ISidenavMenuItem[];
+}
+function findItemPath(menuItems?: ISidenavMenuItem[], identity?: string): ISidenavMenuItem[] | null {
+  if (menuItems)
+    for (const item of menuItems) {
+      // If the current item's identity matches, return its path as a single-item array.
+      if (item.identity === identity) {
+        return [item];
+      }
+
+      // If the current item has children, search recursively in the children.
+      if (item.children) {
+        const childPath = findItemPath(item.children, identity);
+
+        // If a matching path is found in the children, prepend the current item's identity to the path.
+        if (childPath) {
+          return [item, ...childPath];
+        }
+      }
+    }
+
+  // If no matching identity is found in this branch, return null.
+  return null;
 }
