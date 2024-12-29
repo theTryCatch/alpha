@@ -30,10 +30,10 @@ export class AppFrameComponent implements OnInit {
   public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
 
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
-  public rightSidenavState: SidebarStates = SidebarStates.expanded;
+  public rightSidenavState: SidebarStates = SidebarStates.closed;
   public isSmallScreen: boolean = false;
   userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
-  dynamicComponent: any;
+  dynamicComponent?: any;
   constructor(
     private title: Title,
     private faviconService: FaviconService,
@@ -155,8 +155,11 @@ export class AppFrameComponent implements OnInit {
   onMenuItemClick(menuItem: ISidenavMenuItem) {
     if (menuItem) {
       this.dynamicComponent = menuItem.rightSidenavComponent;
+      if (this.rightSidenavState === SidebarStates.closed) {
+        this.rightSidenavState = SidebarStates.expanded;
+      }
     } else {
-      this.dynamicComponent = null;
+      this.dynamicComponent = undefined;
     }
   }
 }

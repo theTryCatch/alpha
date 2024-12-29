@@ -47,7 +47,7 @@
             <!-- #endregion  -->
 
             <!-- #region: User profile image -->
-            <div class="dropdown dropdown-end z-40 hidden md:flex" *ngIf="config?.brandingbar?.userProfileImagePath">
+            <div class="dropdown dropdown-left z-40 hidden md:flex" *ngIf="config?.brandingbar?.userProfileImagePath">
                 <button tabindex="0" class="btn btn-ghost btn-circle avatar">
                     <div class="w-10 rounded-full">
                         <img [src]="config?.brandingbar?.userProfileImagePath" alt="User Profile Image" />
@@ -65,6 +65,7 @@
 
             <!-- #region: Right sidenav toggle button -->
             <button class="flex items-center px-4 py-2 hover:bg-neutral rounded transition-colors"
+                    [style.visibility]="dynamicComponent === undefined ? 'hidden' : 'visible'"
                     (click)="toggleSidenav(sidebarRightPostion)">
                 <ng-container *ngIf="rightSidenavState === sidebarClosed">
                     <svg class="fill-accent" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
@@ -105,25 +106,14 @@
         <!-- Main Content -->
         <div class="flex-grow p-6 transition-all duration-500 overflow-hidden"
              [style.marginRight]="getRightSidenavMargin()">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia a incidunt, ab esse dolor odio delectus error
-            tenetur. Omnis perspiciatis inventore quos, sint quaerat sunt. Vel, recusandae? Quasi, iste voluptas.
-            Eveniet, totam saepe amet officiis sed ipsum minima sapiente expedita quibusdam soluta quasi obcaecati omnis
-            animi odio beatae corporis. Impedit perspiciatis vero eos odio blanditiis illum nulla fugit quod natus!
-            Voluptas sit maiores, quaerat perferendis excepturi minus libero ab dolorum, voluptatum id, accusamus quod
-            odio? Blanditiis deleniti omnis culpa dolorum assumenda ratione vitae, eum sed vel, nisi expedita,
-            reiciendis doloremque?
-            Repellendus explicabo aliquam debitis incidunt animi ducimus quae minima sit consectetur, tenetur
-            voluptatibus! Sed sint delectus dicta nesciunt consequuntur id accusantium, quod, esse maxime quis officiis
-            architecto aut, quidem corrupti.
-            Vel perspiciatis porro veritatis vero et, accusamus nesciunt, nemo non qui aspernatur aliquid animi at totam
-            quaerat. Molestias ullam autem eius, temporibus similique, minus ratione nemo culpa, illum aliquid enim.
+            <span class="text-xl">Main</span>
+            {{dynamicComponent === undefined}}
             <router-outlet></router-outlet>
         </div>
 
         <!-- Right sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-            *ngIf="dynamicComponent"
-            [ngClass]="{
+             *ngIf="dynamicComponent" [ngClass]="{
             'w-64': rightSidenavState === sidebarExpanded && !isSmallScreen,
             'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,
             'w-0 hidden': rightSidenavState === sidebarClosed
