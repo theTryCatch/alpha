@@ -238,6 +238,7 @@ export interface ISidenavMenuItem {
   label: string;
   route: string;
   googleIconName?: string;
+  tooltip: string;
   rightSidenavComponent?: Type<Component>;
   children?: ISidenavMenuItem[];
 }

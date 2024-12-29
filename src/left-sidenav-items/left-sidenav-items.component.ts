@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, EventEmitter, Input, Output, Type, ViewChild, viewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AppFrameComponent, ISidebarStatus, ISidenavMenuItem, SidebarPosition, SidebarStates } from '../app-frame/app-frame.component';
+import { ISidebarStatus, ISidenavMenuItem, SidebarPosition, SidebarStates } from '../app-frame/app-frame.component';
 
 @Component({
   selector: 'left-sidenav-items',
