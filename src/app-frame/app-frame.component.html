@@ -89,7 +89,7 @@
     <!-- #region: SMT -->
     <div class="flex flex-grow overflow-hidden" [style.paddingTop]="brandingbar.offsetHeight+'px'">
         <!-- Left sidenav -->
-        <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
+        <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0 pt-8"
              *ngIf="config?.leftSidenavMenuItems" [style.width]="getLeftSidenavWidth()">
             <!-- [ngClass]="{
                 'w-64': leftSidenavState === sidebarExpanded && !isSmallScreen,
@@ -108,7 +108,6 @@
         <div class="flex-grow p-6 transition-all duration-500 overflow-hidden"
              [style.marginRight]="getRightSidenavMargin()">
             <span class="text-xl">Main</span>
-            {{dynamicComponent === undefined}}
             <router-outlet></router-outlet>
         </div>
 

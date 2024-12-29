@@ -16,11 +16,11 @@ import { ZooComponent } from '../zoo/zoo.component';
 export class AppComponent {
   public sidenavMenuItems: ISidenavMenuItem[] = [
     {
-      label: "A1z2b3c4",
-      tooltip: "sagar",
-      route: "foo",
-      identity: "A1z2b3c4",
-      googleIconName: "access_alarm",
+      label: "Home",
+      tooltip: "Home page",
+      route: "home",
+      identity: "home",
+      googleIconName: "home",
       rightSidenavComponent: FooComponent
     },
     {
