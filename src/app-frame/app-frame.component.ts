@@ -32,8 +32,8 @@ export class AppFrameComponent implements OnInit {
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
   public rightSidenavState: SidebarStates = SidebarStates.expanded;
   public isSmallScreen: boolean = false;
-  userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
-  dynamicComponent?: any;
+  public userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
+  public dynamicComponent?: Type<Component>;
   constructor(
     private title: Title,
     private faviconService: FaviconService,
@@ -201,6 +201,6 @@ export interface ISidenavMenuItem {
   label: string;
   route: string;
   googleIconName?: string;
-  rightSidenavComponent?: Type<any>;
+  rightSidenavComponent?: Type<Component>;
   children?: ISidenavMenuItem[];
 }
