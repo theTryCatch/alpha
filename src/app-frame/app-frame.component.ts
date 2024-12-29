@@ -30,7 +30,7 @@ export class AppFrameComponent implements OnInit {
   public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
 
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
-  public rightSidenavState: SidebarStates = SidebarStates.closed;
+  public rightSidenavState: SidebarStates = SidebarStates.expanded;
   public isSmallScreen: boolean = false;
   userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
   dynamicComponent?: any;
@@ -197,6 +197,7 @@ export interface ISidebarStatus {
   nextState: SidebarStates
 }
 export interface ISidenavMenuItem {
+  identity: string;
   label: string;
   route?: string;
   googleIconName?: string;
