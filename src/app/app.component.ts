@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AppFrameComponent, IAppFrame, ISidenavMenuItem } from '../app-frame/app-frame.component';
+import { AppFrameComponent, IAppFrame, ISidenavMenuItem, SidebarStates } from '../app-frame/app-frame.component';
 import { CommonModule } from '@angular/common';
 import { FooComponent } from '../foo/foo.component';
 import { ZooComponent } from '../zoo/zoo.component';
@@ -121,6 +121,7 @@ export class AppComponent {
           googleIconName: "restore",
           children: [
             {
+              rightSidenavComponent: ZooComponent,
               label: "J4k5l6m7",
               route: "foo",
               identity: "J4k5l6m7",
@@ -205,5 +206,10 @@ export class AppComponent {
     },
     leftSidenavMenuItems: this.sidenavMenuItems,
     defaultTheme: 'MorganStanley_Dark',
+    leftSidenavWidth: {
+      expanded: "20rem",
+      icons: "10rem"
+    },
+    rightSidenavWidth: "25rem",
   };
 }

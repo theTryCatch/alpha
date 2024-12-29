@@ -90,12 +90,13 @@
     <div class="flex flex-grow overflow-hidden" [style.paddingTop]="brandingbar.offsetHeight+'px'">
         <!-- Left sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-             *ngIf="config?.leftSidenavMenuItems" [ngClass]="{
-            'w-64': leftSidenavState === sidebarExpanded && !isSmallScreen,
-            'w-40': leftSidenavState === sidebarIcons && !isSmallScreen,
-            'w-full h-full': leftSidenavState === sidebarExpanded && isSmallScreen,
-            'w-0 hidden': leftSidenavState === sidebarClosed
-          }">
+             *ngIf="config?.leftSidenavMenuItems" [style.width]="getLeftSidenavWidth()">
+            <!-- [ngClass]="{
+                'w-64': leftSidenavState === sidebarExpanded && !isSmallScreen,
+                'w-40': leftSidenavState === sidebarIcons && !isSmallScreen,
+                'w-full h-full': leftSidenavState === sidebarExpanded && isSmallScreen,
+                'w-0 hidden': leftSidenavState === sidebarClosed
+              }" -->
             <ul class="rounded-box menu p-0">
                 <left-sidenav-items *ngFor="let item of config?.leftSidenavMenuItems" [config]="item"
                                     [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)"
@@ -113,11 +114,12 @@
 
         <!-- Right sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-             *ngIf="dynamicComponent" [ngClass]="{
-            'w-64': rightSidenavState === sidebarExpanded && !isSmallScreen,
-            'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,
-            'w-0 hidden': rightSidenavState === sidebarClosed
-          }">
+             (blur)="rightSidenavState = sidebarClosed" *ngIf="dynamicComponent" [style.width]="getRightSidenavWidth()">
+            <!-- [ngClass]="{
+                'w-64': rightSidenavState === sidebarExpanded && !isSmallScreen,
+                'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,
+                'w-0 hidden': rightSidenavState === sidebarClosed
+              }" -->
             <ng-container *ngComponentOutlet="dynamicComponent"></ng-container>
         </div>
     </div>

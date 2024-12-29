@@ -3,7 +3,7 @@ import { Theme, ThemeSelectorComponent } from '../theme-selector/theme-selector.
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { FaviconService } from '../services/favicon.service';
-import { RouterOutlet } from '@angular/router';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
 
@@ -37,6 +37,7 @@ export class AppFrameComponent implements OnInit {
   constructor(
     private title: Title,
     private faviconService: FaviconService,
+    private route: ActivatedRoute
   ) {
 
   }
@@ -119,19 +120,25 @@ export class AppFrameComponent implements OnInit {
     return resultTemp;
   }
   updateSidenavState(screenWidth: number) {
+    this.route.queryParams.subscribe((id) => {
+      if (id && id['id']) {
+        this.dynamicComponent = this.config?.leftSidenavMenuItems?.find(item => item.identity === id['id'])?.rightSidenavComponent;
+      }
+    });
+
     this.isSmallScreen = screenWidth < 640;
     if (this.isSmallScreen) {
       this.leftSidenavState = SidebarStates.closed;
       this.rightSidenavState = SidebarStates.closed;
     }
     // Commenting out this code as this is overwriting the defaults specified. Keeping it for reference.
-    /* else if (screenWidth >= 640 && screenWidth < 1024) {
+    else if (screenWidth >= 640 && screenWidth < 1024) {
       this.leftSidenavState = SidebarStates.icons;
       this.rightSidenavState = SidebarStates.closed;
     } else {
       this.leftSidenavState = SidebarStates.expanded;
-      this.rightSidenavState = SidebarStates.closed;
-    } */
+      this.rightSidenavState = SidebarStates.expanded;
+    }
   }
   onUserProfileMenuItemClick(_t36: IAppUserProfileMenuItem) {
     throw new Error('Method not implemented.');
@@ -161,6 +168,30 @@ export class AppFrameComponent implements OnInit {
     } else {
       this.dynamicComponent = undefined;
     }
+    if (this.isSmallScreen) {
+      this.leftSidenavState = SidebarStates.closed;
+      this.rightSidenavState = SidebarStates.closed;
+    }
+  }
+  getLeftSidenavWidth() {
+    if (this.leftSidenavState === this.sidebarExpanded && !this.isSmallScreen) {
+      return this.config?.leftSidenavWidth.expanded;
+    } else if (this.leftSidenavState === this.sidebarIcons && !this.isSmallScreen) {
+      return this.config?.leftSidenavWidth.icons;
+    } else if (this.leftSidenavState === this.sidebarExpanded && this.isSmallScreen) {
+      return '100%';
+    } else {
+      return '0px';
+    }
+  }
+  getRightSidenavWidth() {
+    if (this.rightSidenavState === this.sidebarExpanded && !this.isSmallScreen) {
+      return this.config?.rightSidenavWidth;
+    } else if (this.rightSidenavState === this.sidebarExpanded && this.isSmallScreen) {
+      return '100%';
+    } else {
+      return '0px';
+    }
   }
 }
 export interface IAppFrame {
@@ -168,6 +199,12 @@ export interface IAppFrame {
   brandingbar: IAppBrandingbar;
   defaultTheme: Theme,
   leftSidenavMenuItems?: ISidenavMenuItem[];
+  leftSidenavWidth: leftSidenavWidth,
+  rightSidenavWidth: string;
+}
+export interface leftSidenavWidth {
+  expanded: string;
+  icons: string;
 }
 export interface IAppFrameHeader {
   title: string;
