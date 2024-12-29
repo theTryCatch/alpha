@@ -199,7 +199,7 @@ export interface ISidebarStatus {
 export interface ISidenavMenuItem {
   identity: string;
   label: string;
-  route?: string;
+  route: string;
   googleIconName?: string;
   rightSidenavComponent?: Type<any>;
   children?: ISidenavMenuItem[];

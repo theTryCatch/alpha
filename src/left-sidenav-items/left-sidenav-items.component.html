@@ -15,8 +15,7 @@
             </summary>
             <ul>
                 <left-sidenav-items *ngFor="let child of config.children" [config]="child"
-                                    [sidebarStatus]="sidebarStatus"
-                                    (menuItemClicked)="emitMenuItemClick($event)"/>
+                                    [sidebarStatus]="sidebarStatus" (menuItemClicked)="emitMenuItemClick($event)" />
             </ul>
         </details>
     </ng-template>
