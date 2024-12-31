@@ -43,7 +43,7 @@
             <div class="flex items-center space-x-2">
                 <!-- #region: Theme selector -->
                 <app-theme-selector [initialTheme]="getInitialTheme()"
-                                    (themeChange)="onThemeChange($event)"></app-theme-selector>
+                                    (themeChange)="cacheSelectedTheme($event)"></app-theme-selector>
                 <!-- #endregion  -->
 
                 <!-- #region: User profile image -->
@@ -54,13 +54,6 @@
                             <img [src]="config?.brandingbar?.userProfileImagePath" alt="User Profile Image" />
                         </div>
                     </button>
-                    <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
-                        <li *ngFor="let item of userProfileMenuItems">
-                            <a (click)="onUserProfileMenuItemClick(item)">{{
-                                item.label
-                                }}</a>
-                        </li>
-                    </ul>
                 </div>
                 <!-- #endregion  -->
 
@@ -86,11 +79,12 @@
         </div>
 
         <!-- New third row div -->
-        <div class="flex flex-row items-center w-full m-0 pl-4 bg-primary-content min-h-[38px] border-b-2 border-b-base-300">
-            Path: &nbsp; 
+        <div
+             class="flex flex-row items-center w-full m-0 pl-4 bg-primary-content min-h-[38px] border-b-2 border-b-base-300">
+            Path: &nbsp;
             <div class="breadcrumbs text-sm">
                 <ul>
-                    <ng-container *ngFor="let item of (getFullyQualifiedMenuItemPathTillParent()|async)">
+                    <ng-container *ngFor="let item of (getMenuItemPath()|async)">
                         <li>
                             <div class="flex gap-1 items-center">
                                 <span class="material-icons !text-[1em]">{{ item.googleIconName }}</span>
@@ -109,16 +103,9 @@
         <!-- Left sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0 pt-8"
              *ngIf="config?.leftSidenavMenuItems" [style.width]="getLeftSidenavWidth()">
-            <!-- [ngClass]="{
-                'w-64': leftSidenavState === sidebarExpanded && !isSmallScreen,
-                'w-40': leftSidenavState === sidebarIcons && !isSmallScreen,
-                'w-full h-full': leftSidenavState === sidebarExpanded && isSmallScreen,
-                'w-0 hidden': leftSidenavState === sidebarClosed
-              }" -->
             <ul class="rounded-box menu p-0">
                 <left-sidenav-items *ngFor="let item of config?.leftSidenavMenuItems" [config]="item"
-                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)"
-                                    (menuItemClicked)="onMenuItemClick($event)" />
+                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)" />
             </ul>
         </div>
 
@@ -131,12 +118,7 @@
 
         <!-- Right sidenav -->
         <div class="bg-primary-content transition-all duration-500 ease-in-out h-full overflow-y-auto flex-shrink-0"
-             (blur)="rightSidenavState = sidebarClosed" *ngIf="dynamicComponent !== undefined" [style.width]="getRightSidenavWidth()">
-            <!-- [ngClass]="{
-                'w-64': rightSidenavState === sidebarExpanded && !isSmallScreen,
-                'w-full h-full': rightSidenavState === sidebarExpanded && isSmallScreen,
-                'w-0 hidden': rightSidenavState === sidebarClosed
-              }" -->
+             [style.width]="getRightSidenavWidth()" *ngIf="dynamicComponent !== undefined">
             <ng-container *ngComponentOutlet="dynamicComponent"></ng-container>
         </div>
     </div>

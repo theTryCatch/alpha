@@ -52,6 +52,7 @@ export class AppComponent {
           route: "foo",
           identity: "R5s6t7u8",
           googleIconName: "lock",
+
           children: [
             {
               label: "F9g0h1i2",
@@ -59,12 +60,14 @@ export class AppComponent {
               route: "foo",
               identity: "F9g0h1i2",
               googleIconName: "live_tv",
+
               children: [{
                 label: "V1w2x3y46",
                 tooltip: "V1w2x3y46",
                 route: "foo",
                 identity: "V1w2x3y4",
                 googleIconName: "mail",
+
                 children: [
                   {
                     label: "V1w2x3y45",
@@ -83,14 +86,16 @@ export class AppComponent {
               tooltip: "V1w2x3y4",
               route: "foo",
               identity: "V1w2x3y4",
-              googleIconName: "mail"
+              googleIconName: "mail",
+
             },
             {
               label: "A4b5c6d7",
               tooltip: "A4b5c6d7",
               route: "foo",
               identity: "A4b5c6d7",
-              googleIconName: "map"
+              googleIconName: "map",
+
             }
           ]
         },
@@ -106,14 +111,15 @@ export class AppComponent {
               tooltip: "N5o6p7q8",
               route: "foo",
               identity: "N5o6p7q8",
-              googleIconName: "music_note"
+              googleIconName: "music_note",
+
             },
             {
               label: "U1v2w3x4",
               tooltip: "U1v2w3x4",
               route: "foo",
               identity: "U1v2w3x4",
-              googleIconName: "people"
+              googleIconName: "people",
             },
           ]
         },

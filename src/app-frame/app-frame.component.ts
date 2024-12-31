@@ -1,12 +1,12 @@
-import { ChangeDetectorRef, Component, HostListener, Input, OnInit, Type } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, Input, OnDestroy, OnInit, Type } from '@angular/core';
 import { Theme, ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { FaviconService } from '../services/favicon.service';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LeftSidenavItemsComponent } from '../left-sidenav-items/left-sidenav-items.component';
-import { map, Observable } from 'rxjs';
+import { filter, map, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-frame',
@@ -21,65 +21,87 @@ import { map, Observable } from 'rxjs';
   templateUrl: './app-frame.component.html',
   styles: ``
 })
-export class AppFrameComponent implements OnInit {
+export class AppFrameComponent implements OnInit, OnDestroy {
   @Input({ required: true }) config?: IAppFrame;
-
-  public sidebarClosed: SidebarStates = SidebarStates.closed;
-  public sidebarExpanded: SidebarStates = SidebarStates.expanded;
-  public sidebarIcons: SidebarStates = SidebarStates.icons;
-  public sidebarLeftPostion: SidebarPosition = SidebarPosition.left;
-  public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
 
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
   public rightSidenavState: SidebarStates = SidebarStates.expanded;
-  public isSmallScreen: boolean = false;
   public userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
   public dynamicComponent?: Type<Component>;
-  constructor(
-    private title: Title,
-    private faviconService: FaviconService,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
-  ) {
+  public currentMenuItemIdentity: string = "";
 
+  private subscriptions: Subscription[] = [];
+
+  //#region These properties are created to use them in the template as we can't access the enum types in the template directly.
+  public sidebarClosed: SidebarStates = SidebarStates.closed;
+  public sidebarExpanded: SidebarStates = SidebarStates.expanded;
+  public sidebarIcons: SidebarStates = SidebarStates.icons;
+
+  public sidebarLeftPostion: SidebarPosition = SidebarPosition.left;
+  public sidebarRightPostion: SidebarPosition = SidebarPosition.right;
+  //#endregion
+
+
+  isSmallScreen(): boolean {
+    return window.innerWidth < 640;
   }
-  ngOnInit(): void {
-    this.updateSidenavState(window.innerWidth);
-
-    if (this.config?.browserTitlebar.title) {
-      this.title.setTitle(this.config?.browserTitlebar.title);
-    }
-
-    if (this.config?.browserTitlebar.iconPath) {
-      this.faviconService.changeFavicon(this.config?.browserTitlebar.iconPath);
-    }
+  isMediumScreen(): boolean {
+    return window.innerWidth >= 640 && window.innerWidth < 1024;
   }
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    this.updateSidenavState(event.target.innerWidth);
+  //#region Recursively finding the items
+  findMenuItem(menuIdentity?: string): ISidenavMenuItem | undefined {
+    if (!menuIdentity) return undefined;
+    return this.findItemInMenu(this.config?.leftSidenavMenuItems, menuIdentity);
   }
-  toggleSidenav(side: SidebarPosition) {
-    const isLeft = side === SidebarPosition.left;
 
-    if (isLeft) {
-      this.leftSidenavState = this.getNextSidenavState(this.leftSidenavState, SidebarPosition.left).nextState;
-    } else {
-      this.rightSidenavState = this.getNextSidenavState(this.rightSidenavState, SidebarPosition.right).nextState;
-    }
-
-    if (this.isSmallScreen && (isLeft ? this.leftSidenavState : this.rightSidenavState) !== SidebarStates.closed) {
-      if (isLeft) {
-        this.rightSidenavState = SidebarStates.closed;
-      } else {
-        this.leftSidenavState = SidebarStates.closed;
+  private findItemInMenu(menuItems?: ISidenavMenuItem[], menuIdentity?: string): ISidenavMenuItem | undefined {
+    if (!menuItems) return undefined;
+    for (const item of menuItems) {
+      if (item.identity === menuIdentity) {
+        return item;
+      }
+      if (item.children) {
+        const found = this.findItemInMenu(item.children, menuIdentity);
+        if (found) {
+          return found;
+        }
       }
     }
+    return undefined;
+  }
+  //#endregion
+
+  getDynamicComponent(): Type<Component> {
+    return this.dynamicComponent as Type<Component>;
+  }
+  setSidenavState(left: SidebarStates, right: SidebarStates): void {
+    this.leftSidenavState = left;
+    this.rightSidenavState = right;
+  }
+  setSidenavToInitialSize(): void {
+    if (this.isSmallScreen()) {
+      this.setSidenavState(SidebarStates.closed, SidebarStates.closed);
+    } else if (this.isMediumScreen()) {
+      this.setSidenavState(SidebarStates.icons, SidebarStates.closed);
+    }
+    else {
+      this.setSidenavState(SidebarStates.expanded, SidebarStates.expanded);
+    }
+  }
+  toggleSidenav(side: SidebarPosition): void {
+    const isLeft = side === SidebarPosition.left;
+    let leftNextState: SidebarStates = this.leftSidenavState;
+    let rightNextState: SidebarStates = this.rightSidenavState;
+    if (isLeft) {
+      leftNextState = this.getNextSidenavState(this.leftSidenavState, SidebarPosition.left).nextState;
+    } else {
+      rightNextState = this.getNextSidenavState(this.rightSidenavState, SidebarPosition.right).nextState;
+    }
+    this.setSidenavState(leftNextState, rightNextState);
   }
   getNextSidenavState(currentState: SidebarStates, side: SidebarPosition): ISidebarStatus {
-
     let result: SidebarStates;
-
-    if (side === SidebarPosition.right || this.isSmallScreen) {
+    if (side === SidebarPosition.right || this.isSmallScreen()) {
       result = currentState === SidebarStates.expanded ? SidebarStates.closed : SidebarStates.expanded;
     } else {
       switch (currentState) {
@@ -95,55 +117,7 @@ export class AppFrameComponent implements OnInit {
     }
 
     const resultTemp: ISidebarStatus = { nextState: result, side, currentState };
-
-
-
-    /* 
-        const logSidebarStatus = (status: ISidebarStatus): Record<string, any> => {
-          const enumMap: { [key: string]: any } = {
-            side: SidebarPosition,
-            currentState: SidebarStates,
-            nextState: SidebarStates,
-          };
-    
-          return Object.entries(status).reduce((acc: Record<string, any>, [key, value]) => {
-            if (typeof value === "number" && enumMap[key]) {
-              acc[key] = enumMap[key][value]; // Map number to enum string
-            } else {
-              acc[key] = value;
-            }
-            return acc;
-          }, {}); // Initialize as a plain object
-        };
-        console.log(logSidebarStatus(resultTemp)); */
-
-
-
     return resultTemp;
-  }
-  updateSidenavState(screenWidth: number) {
-    this.route.queryParams.subscribe((id) => {
-      if (id && id['id']) {
-        this.dynamicComponent = this.config?.leftSidenavMenuItems?.find(item => item.identity === id['id'])?.rightSidenavComponent;
-      }
-    });
-
-    this.isSmallScreen = screenWidth < 640;
-    if (this.isSmallScreen) {
-      this.leftSidenavState = SidebarStates.closed;
-      this.rightSidenavState = SidebarStates.closed;
-    }
-    // Commenting out this code as this is overwriting the defaults specified. Keeping it for reference.
-    else if (screenWidth >= 640 && screenWidth < 1024) {
-      this.leftSidenavState = SidebarStates.icons;
-      this.rightSidenavState = SidebarStates.closed;
-    } else {
-      this.leftSidenavState = SidebarStates.expanded;
-      this.rightSidenavState = SidebarStates.expanded;
-    }
-  }
-  onUserProfileMenuItemClick(_t36: IAppUserProfileMenuItem) {
-    throw new Error('Method not implemented.');
   }
   getInitialTheme(): Theme {
     if (this.config?.defaultTheme) {
@@ -152,66 +126,106 @@ export class AppFrameComponent implements OnInit {
       return "light" as Theme;
     }
   }
-  getRightSidenavMargin() {
-    if (this.rightSidenavState === SidebarStates.expanded && !this.isSmallScreen) {
-      return '16rem'; // Full width (64) on large screens
-    }
-    return '0'; // No margin for small screens or closed sidenav
-  }
-  onThemeChange(theme: Theme) {
+  cacheSelectedTheme(theme: Theme) {
     localStorage.setItem("ftui-app-frame-theme", theme)
   }
-  onMenuItemClick(menuItem: ISidenavMenuItem) {
-    console.log("---- Menu item click - Start-----");
-
-    console.log("dynamicComponent is...", this.dynamicComponent);
-    console.log("menu item is...", menuItem);
-
-    console.log("---- Menu item click - End-----");
-
-    if (menuItem) {
-      this.dynamicComponent = menuItem.rightSidenavComponent;
-      this.rightSidenavState = SidebarStates.expanded;
-    } else {
-      this.dynamicComponent = undefined;
-      this.rightSidenavState = SidebarStates.closed;
+  getRightSidenavMargin(): string {
+    if (this.rightSidenavState === SidebarStates.expanded && !this.isSmallScreen()) {
+      return '16rem';
     }
-    if (this.isSmallScreen) {
-      this.leftSidenavState = SidebarStates.closed;
-      this.rightSidenavState = SidebarStates.closed;
-    }
-    this.cdr.detectChanges();
+    return '0';
   }
-  getLeftSidenavWidth() {
-    if (this.leftSidenavState === this.sidebarExpanded && !this.isSmallScreen) {
+  getLeftSidenavWidth(): string | undefined {
+    if (this.leftSidenavState === this.sidebarExpanded && !this.isSmallScreen()) {
       return this.config?.leftSidenavWidth.expanded;
-    } else if (this.leftSidenavState === this.sidebarIcons && !this.isSmallScreen) {
+    } else if (this.leftSidenavState === this.sidebarIcons && !this.isSmallScreen()) {
       return this.config?.leftSidenavWidth.icons;
-    } else if (this.leftSidenavState === this.sidebarExpanded && this.isSmallScreen) {
+    } else if (this.leftSidenavState === this.sidebarExpanded && this.isSmallScreen()) {
       return '100%';
     } else {
       return '0px';
     }
   }
-  getRightSidenavWidth() {
-    if (this.rightSidenavState === this.sidebarExpanded && !this.isSmallScreen) {
+  getRightSidenavWidth(): string | undefined {
+    if (this.rightSidenavState === this.sidebarExpanded && !this.isSmallScreen()) {
       return this.config?.rightSidenavWidth;
-    } else if (this.rightSidenavState === this.sidebarExpanded && this.isSmallScreen) {
+    } else if (this.rightSidenavState === this.sidebarExpanded && this.isSmallScreen()) {
       return '100%';
     } else {
       return '0px';
     }
   }
-  getFullyQualifiedMenuItemPathTillParent(): Observable<ISidenavMenuItem[]> {
+  getMenuItemPath(): Observable<ISidenavMenuItem[]> {
     return this.route.queryParams.pipe(
       map((id: any) => {
         let path: ISidenavMenuItem[] = [];
-        findItemPath(this.config?.leftSidenavMenuItems, id['id'])?.forEach((item) => {
+        this.findItemPath(this.config?.leftSidenavMenuItems, id['id'])?.forEach((item) => {
           path.push(item);
         });
         return path;
       })
     );
+  }
+  findItemPath(menuItems?: ISidenavMenuItem[], identity?: string): ISidenavMenuItem[] | undefined {
+    if (menuItems)
+      for (const item of menuItems) {
+        // If the current item's identity matches, return its path as a single-item array.
+        if (item.identity === identity) {
+          return [item];
+        }
+
+        // If the current item has children, search recursively in the children.
+        if (item.children) {
+          const childPath = this.findItemPath(item.children, identity);
+
+          // If a matching path is found in the children, prepend the current item's identity to the path.
+          if (childPath) {
+            return [item, ...childPath];
+          }
+        }
+      }
+
+    // If no matching identity is found in this branch, return undefined.
+    return undefined;
+  }
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    this.setSidenavToInitialSize();
+  }
+  constructor(
+    private title: Title,
+    private faviconService: FaviconService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+
+  }
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+  ngOnInit(): void {
+    //#region  Updating the changes when route changes
+    this.subscriptions.push(this.router.events
+      .pipe(filter((event: any) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        const queryParams = this.route.snapshot.queryParams;
+        this.currentMenuItemIdentity = queryParams['id'];
+        this.dynamicComponent = this.findMenuItem(this.currentMenuItemIdentity)?.rightSidenavComponent;
+        this.setSidenavToInitialSize();
+      }));
+
+    //#endregion
+
+    //#region Setting the browser title and favicon
+    if (this.config?.browserTitlebar.title) {
+      this.title.setTitle(this.config?.browserTitlebar.title);
+    }
+
+    if (this.config?.browserTitlebar.iconPath) {
+      this.faviconService.changeFavicon(this.config?.browserTitlebar.iconPath);
+    }
+    //#endregion
   }
 }
 export interface IAppFrame {
@@ -261,26 +275,4 @@ export interface ISidenavMenuItem {
   tooltip: string;
   rightSidenavComponent?: Type<Component>;
   children?: ISidenavMenuItem[];
-}
-function findItemPath(menuItems?: ISidenavMenuItem[], identity?: string): ISidenavMenuItem[] | null {
-  if (menuItems)
-    for (const item of menuItems) {
-      // If the current item's identity matches, return its path as a single-item array.
-      if (item.identity === identity) {
-        return [item];
-      }
-
-      // If the current item has children, search recursively in the children.
-      if (item.children) {
-        const childPath = findItemPath(item.children, identity);
-
-        // If a matching path is found in the children, prepend the current item's identity to the path.
-        if (childPath) {
-          return [item, ...childPath];
-        }
-      }
-    }
-
-  // If no matching identity is found in this branch, return null.
-  return null;
 }

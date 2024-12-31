@@ -1,11 +1,16 @@
 <li [class.text-primary]="config.children">
     <ng-container *ngIf="!config.children; else hasChildren">
-        <a [routerLink]="config.route" [queryParams]="{id: config.identity}" (click)="emitMenuItemClick(config)"
-           [attr.data-tip]="config.tooltip" class="tooltip tooltip-accent flex">
+        <a [routerLink]="config.route" [queryParams]="{id: config.identity}" (click)="emitMenuItemClick(config)">
             <span *ngIf="sidebarStatus.currentState !== sidebarClosed"
                   class="material-icons !text-[1.8em] text-neutral">{{ config.googleIconName }}</span>
             <span *ngIf="sidebarStatus.currentState === sidebarExpanded" class="text-neutral">{{ config.label }}</span>
         </a>
+        <!-- <a [routerLink]="config.route" [queryParams]="{id: config.identity}" (click)="emitMenuItemClick(config)"
+           [attr.data-tip]="config.tooltip" class="tooltip tooltip-accent flex">
+            <span *ngIf="sidebarStatus.currentState !== sidebarClosed"
+                  class="material-icons !text-[1.8em] text-neutral">{{ config.googleIconName }}</span>
+            <span *ngIf="sidebarStatus.currentState === sidebarExpanded" class="text-neutral">{{ config.label }}</span>
+        </a> -->
     </ng-container>
     <ng-template #hasChildren>
         <details open>
