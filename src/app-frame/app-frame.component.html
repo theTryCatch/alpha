@@ -81,7 +81,7 @@
         <!-- New third row div -->
         <div
              class="flex flex-row items-center w-full m-0 pl-4 bg-primary-content min-h-[38px] border-b-2 border-b-base-300">
-            Path: &nbsp;
+            <span *ngIf="currentMenuItemIdentity">Path:&nbsp;</span>
             <div class="breadcrumbs text-sm">
                 <ul>
                     <ng-container *ngFor="let item of (getMenuItemPath()|async)">

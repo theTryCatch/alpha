@@ -26,7 +26,6 @@ export class AppFrameComponent implements OnInit, OnDestroy {
 
   public leftSidenavState: SidebarStates = SidebarStates.expanded;
   public rightSidenavState: SidebarStates = SidebarStates.expanded;
-  public userProfileMenuItems: IAppUserProfileMenuItem[] = [{ label: 'Settings' }];
   public dynamicComponent?: Type<Component>;
   public currentMenuItemIdentity: string = "";
 
