@@ -1,3 +1,47 @@
+@import "@fontsource/material-icons";
+@import "@fontsource/material-icons-round";
+@import "@fontsource/material-icons-outlined";
+@import "@fontsource/material-icons-sharp";
+@import "@fontsource/material-icons-two-tone";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* General styling for Material Icons */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px; /* Default size */
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Styling for Material Icons Round */
+  .material-icons-round {
+    font-family: 'Material Icons Round';
+  }
+  
+  /* Styling for Material Icons Outlined */
+  .material-icons-outlined {
+    font-family: 'Material Icons Outlined';
+  }
+  
+  /* Styling for Material Icons Sharp */
+  .material-icons-sharp {
+    font-family: 'Material Icons Sharp';
+  }
+  
+  /* Styling for Material Icons Two-Tone */
+  .material-icons-two-tone {
+    font-family: 'Material Icons Two Tone';
+  }
+  
