@@ -77,8 +77,6 @@
                 <!-- #endregion -->
             </div>
         </div>
-
-        <!-- New third row div -->
         <div
              class="flex flex-row items-center w-full m-0 pl-4 bg-primary-content min-h-[38px] border-b-2 border-b-base-300">
             <span *ngIf="currentMenuItemIdentity">Path:&nbsp;</span>
@@ -105,7 +103,8 @@
              *ngIf="config?.leftSidenavMenuItems" [style.width]="getLeftSidenavWidth()">
             <ul class="rounded-box menu p-0">
                 <left-sidenav-items *ngFor="let item of config?.leftSidenavMenuItems" [config]="item"
-                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)" />
+                                    [sidebarStatus]="getNextSidenavState(leftSidenavState, sidebarLeftPostion)"
+                                    (menuItemClicked)="onMenuItemClick()" />
             </ul>
         </div>
 

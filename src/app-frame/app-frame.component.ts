@@ -96,6 +96,17 @@ export class AppFrameComponent implements OnInit, OnDestroy {
     } else {
       rightNextState = this.getNextSidenavState(this.rightSidenavState, SidebarPosition.right).nextState;
     }
+    if (this.isSmallScreen()) {
+      if (isLeft) {
+        if (this.rightSidenavState === SidebarStates.expanded) {
+          rightNextState = SidebarStates.closed;
+        }
+      } else {
+        if (this.leftSidenavState === SidebarStates.expanded) {
+          leftNextState = SidebarStates.closed;
+        }
+      }
+    }
     this.setSidenavState(leftNextState, rightNextState);
   }
   getNextSidenavState(currentState: SidebarStates, side: SidebarPosition): ISidebarStatus {
@@ -225,6 +236,19 @@ export class AppFrameComponent implements OnInit, OnDestroy {
       this.faviconService.changeFavicon(this.config?.browserTitlebar.iconPath);
     }
     //#endregion
+  }
+  onMenuItemClick(): void {
+    if (this.isSmallScreen()) {
+      this.hideSideNav(SidebarPosition.left);
+      this.hideSideNav(SidebarPosition.right);
+    }
+  }
+  hideSideNav(sidenav: SidebarPosition): void {
+    if (sidenav === SidebarPosition.left) {
+      this.leftSidenavState = SidebarStates.closed;
+    } else {
+      this.rightSidenavState = SidebarStates.closed;
+    }
   }
 }
 export interface IAppFrame {
