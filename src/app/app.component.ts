@@ -15,21 +15,43 @@ import { DynamicJsonFormComponent, Metadata } from './dynamic-json-form/dynamic-
 })
 export class AppComponent {
   sampleJson = {
-    zindagi: 'John Doe',
-    name: 'John Doe',
-    age: 30,
-    address: {
-      street: '123 Main St',
-      city: 'Anytown',
-      country: {
-        name: 'USA',
-        code: 'USs',
+    name: "Sagar",
+    steps: [
+      {
+        zindagi: 'John Doe',
+        name: 'John Doe',
+        age: 30,
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          country: {
+            name: 'USA',
+            code: 'USs',
+          },
+        },
+        preferences: {
+          theme: 'dark',
+          notifications: true,
+        },
       },
-    },
-    preferences: {
-      theme: 'dark',
-      notifications: true,
-    },
+      {
+        zindagi: 'John Doe',
+        name: 'John Doe',
+        age: 30,
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          country: {
+            name: 'USA',
+            code: 'USs',
+          },
+        },
+        preferences: {
+          theme: 'dark',
+          notifications: true,
+        },
+      }
+    ]
   };
 
   metadata: Metadata = {
@@ -80,7 +102,7 @@ export class AppComponent {
         },
         notifications: {
           helpMessage: 'Enable or disable notifications.',
-          
+
         },
       },
       userDefined: true
