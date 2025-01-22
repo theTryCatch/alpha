@@ -16,7 +16,7 @@ import { DynamicJsonFormComponent, Metadata } from './dynamic-json-form/dynamic-
 export class AppComponent {
   sampleJson = {
     name: "Sagar",
-    steps: [
+    stepssaga: [
       {
         zindagi: 'John Doe',
         name: 'John Doe',
@@ -55,57 +55,58 @@ export class AppComponent {
   };
 
   metadata: Metadata = {
-    zindagi: {
-      helpMessage: 'Please enter your full name.',
-      required: true,
-      popupMessage: "<b>hi</b>"
-    },
     name: {
-      helpMessage: 'Please enter your full name.',
-      maxLength: 50,
+      helpMessage: 'Enter your full name.',
       required: true,
+      maxLength: 5,
+      popupMessage: "hi"
     },
-    age: {
-      helpMessage: 'Please enter your age.',
-      required: true,
-    },
-    address: {
+    stepssaga: {
       nestedMetadata: {
-        street: {
-          helpMessage: 'Enter the street name.',
-          maxLength: 100,
-        },
-        city: {
-          helpMessage: 'Enter the city name.',
+        zindagi: {
+          helpMessage: 'Main description for the step.',
           required: true,
         },
-        country: {
+        name: {
+          helpMessage: 'Enter the name for this step.',
+          required: true,
+        },
+        age: {
+          helpMessage: 'Provide the age as a number.',
+          required: true,
+        },
+        address: {
           nestedMetadata: {
-            name: {
-              helpMessage: 'Enter the country name.',
-              required: true,
+            street: {
+              helpMessage: 'Enter the street name.',
             },
-            code: {
-              helpMessage: 'Enter the country code.',
-              maxLength: 2,
-              userDefined: true,
-              popupMessage: "sagar"
+            city: {
+              helpMessage: 'Enter the city name.',
+            },
+            country: {
+              nestedMetadata: {
+                name: {
+                  helpMessage: 'Enter the country name.',
+                },
+                code: {
+                  helpMessage: 'Enter the country code.',
+                },
+              },
+            },
+          },
+        },
+        preferences: {
+          nestedMetadata: {
+            theme: {
+              helpMessage: 'Select your preferred theme.',
+            },
+            notifications: {
+              helpMessage: 'Enable or disable notifications.',
             },
           },
         },
       },
     },
-    preferences: {
-      nestedMetadata: {
-        theme: {
-          helpMessage: 'Select your theme preference.',
-        },
-        notifications: {
-          helpMessage: 'Enable or disable notifications.',
-
-        },
-      },
-      userDefined: true
-    },
   };
+  
 }
