@@ -1,19 +1,31 @@
-import { Component, Input, HostListener } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import {
+  Component,
+  Input,
+  HostListener,
+  OnInit,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  FormControl,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
 export interface Metadata {
   [key: string]:
-  | {
-    helpMessage?: string;
-    maxLength?: number;
-    required?: boolean;
-    userDefined?: boolean;
-    popupMessage?: string;
-    nestedMetadata?: Metadata;
-  }
-  | undefined;
+    | {
+        helpMessage?: string;
+        maxLength?: number;
+        required?: boolean;
+        userDefined?: boolean;
+        popupMessage?: string;
+        nestedMetadata?: Metadata;
+        readOnly?: boolean;
+        type?: 'text' | 'number' | 'date' | 'boolean';
+      }
+    | undefined;
 }
 
 @Component({
@@ -24,7 +36,7 @@ export interface Metadata {
       <ng-container *ngFor="let key of objectKeys(jsonInput)">
         <ng-container *ngIf="isArray(jsonInput[key]); else handleObjectOrPrimitive">
           <!-- Handle Arrays -->
-          <div class="collapse collapse-arrow border border-base-300 rounded-box">
+          <div class="collapse-open collapse-arrow border border-base-300 rounded-box">
             <input type="checkbox" class="peer" />
             <div class="collapse-title text-lg font-medium flex justify-between items-center">
               <span (click)="$event.stopPropagation()">{{ formatKey(key) }}</span>
@@ -33,16 +45,15 @@ export interface Metadata {
                 class="btn btn-circle btn-sm"
                 (click)="$event.stopPropagation(); showPopup(metadata[key]?.popupMessage || '')"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
-                  <path
-                    d="M424-320q0-81 14.5-116.5T500-514q41-36 62.5-62.5T584-637q0-41-27.5-68T480-732q-51 0-77.5 31T365-638l-103-44q21-64 77-111t141-47q105 0 161.5 58.5T698-641q0 50-21.5 85.5T609-475q-49 47-59.5 71.5T539-320H424Zm56 240q-33 0-56.5-23.5T400-160q0-33 23.5-56.5T480-240q33 0 56.5 23.5T560-160q0 33-23.5 56.5T480-80Z"
-                  />
-                </svg>
+                ? apple
               </button>
             </div>
             <div class="collapse-content">
-              <div *ngFor="let item of jsonInput[key]; let i = index" class="mb-4 border rounded p-4">
-                <div class="collapse collapse-arrow border border-base-300 rounded-box">
+              <div
+                *ngFor="let item of jsonInput[key]; let i = index"
+                class="mb-4 border rounded p-4"
+              >
+                <div class="collapse-open collapse-arrow border border-base-300 rounded-box">
                   <input type="checkbox" class="peer" />
                   <div class="collapse-title text-lg font-medium">
                     {{ formatKey(key) }} {{ i + 1 }}
@@ -51,7 +62,7 @@ export interface Metadata {
                     <app-dynamic-json-form
                       [jsonInput]="item"
                       [metadata]="metadata[key]?.nestedMetadata || {}"
-                    ></app-dynamic-json-form>
+                    ></app-dynamic-json-form> Nearest parent's parent
                   </div>
                 </div>
               </div>
@@ -64,29 +75,33 @@ export interface Metadata {
           <ng-container *ngIf="!isObject(jsonInput[key]); else nestedObject">
             <!-- Primitive Value -->
             <div class="form-control">
-              <label *ngIf="!isUserDefinedField(metadata[key])" class="label">
-                <span class="label-text">{{ formatKey(key) }}</span>
+              <label *ngIf="!isUserDefinedField(metadata, key)" class="label">
+                <span class="label-text">{{ formatKey(key) }}</span> Absolute control level - {{key}} - {{findParentOfKey(key, jsonInput) | json}}
               </label>
               <div class="relative flex items-center gap-2">
-                <input
-                  type="text"
-                  class="input input-bordered flex-1"
-                  [formControl]="getOrCreateFormControl(key)"
-                  [attr.maxLength]="metadata[key]?.maxLength || null"
-                  *ngIf="!isUserDefinedField(metadata[key]); else userDefinedInput"
-                />
-                <ng-template #userDefinedInput>
+                <ng-container *ngIf="isUserDefinedField(metadata, key); else standardInput">
+                  <!-- User-Defined Input -->
                   <input
                     type="text"
                     class="input input-bordered flex-1"
                     [formControl]="getOrCreateFormControl(key + '_key')"
                     placeholder="Enter Key"
+                    [value]="key"
                   />
                   <input
                     type="text"
                     class="input input-bordered flex-1"
                     [formControl]="getOrCreateFormControl(key)"
                     placeholder="Enter Value"
+                  />
+                </ng-container>
+                <ng-template #standardInput>
+                  <input
+                    [type]="metadata[key]?.type || 'text'"
+                    class="input input-bordered flex-1"
+                    [formControl]="getOrCreateFormControl(key)"
+                    [attr.maxLength]="metadata[key]?.maxLength || null"
+                    [readonly]="metadata[key]?.readOnly || null"
                   />
                 </ng-template>
 
@@ -95,11 +110,7 @@ export interface Metadata {
                   class="btn btn-circle"
                   (click)="showPopup(metadata[key]?.popupMessage || '')"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
-                    <path
-                      d="M424-320q0-81 14.5-116.5T500-514q41-36 62.5-62.5T584-637q0-41-27.5-68T480-732q-51 0-77.5 31T365-638l-103-44q21-64 77-111t141-47q105 0 161.5 58.5T698-641q0 50-21.5 85.5T609-475q-49 47-59.5 71.5T539-320H424Zm56 240q-33 0-56.5-23.5T400-160q0-33 23.5-56.5T480-240q33 0 56.5 23.5T560-160q0 33-23.5 56.5T480-80Z"
-                    />
-                  </svg>
+                  ?
                 </button>
               </div>
               <div *ngIf="metadata[key]?.helpMessage" class="text-sm text-gray-500 mt-1">
@@ -113,7 +124,7 @@ export interface Metadata {
 
           <!-- Nested Object -->
           <ng-template #nestedObject>
-            <div class="collapse collapse-arrow border border-base-300 rounded-box">
+            <div class="collapse-open collapse-arrow border border-base-300 rounded-box">
               <input type="checkbox" class="peer" />
               <div class="collapse-title text-lg font-medium flex justify-between items-center">
                 <span (click)="$event.stopPropagation()">{{ formatKey(key) }}</span>
@@ -122,18 +133,14 @@ export interface Metadata {
                   class="btn btn-circle btn-sm"
                   (click)="$event.stopPropagation(); showPopup(metadata[key]?.popupMessage || '')"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
-                    <path
-                      d="M424-320q0-81 14.5-116.5T500-514q41-36 62.5-62.5T584-637q0-41-27.5-68T480-732q-51 0-77.5 31T365-638l-103-44q21-64 77-111t141-47q105 0 161.5 58.5T698-641q0 50-21.5 85.5T609-475q-49 47-59.5 71.5T539-320H424Zm56 240q-33 0-56.5-23.5T400-160q0-33 23.5-56.5T480-240q33 0 56.5 23.5T560-160q0 33-23.5 56.5T480-80Z"
-                    />
-                  </svg>
+                  ?
                 </button>
               </div>
               <div class="collapse-content">
                 <app-dynamic-json-form
                   [jsonInput]="jsonInput[key]"
                   [metadata]="metadata[key]?.nestedMetadata || {}"
-                ></app-dynamic-json-form>
+                ></app-dynamic-json-form>Nearest parent - {{key}}
               </div>
             </div>
           </ng-template>
@@ -165,14 +172,15 @@ export interface Metadata {
   styles: [],
   imports: [CommonModule, ReactiveFormsModule],
 })
-export class DynamicJsonFormComponent {
+export class DynamicJsonFormComponent implements OnInit {
   @Input() jsonInput: any = {};
   @Input() metadata: Metadata = {};
 
   formGroup: FormGroup = new FormGroup({});
   popupContent: string | null = null;
 
-  constructor(private fb: FormBuilder) { }
+
+  constructor(private fb: FormBuilder) {}
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape(event: KeyboardEvent): void {
@@ -188,10 +196,6 @@ export class DynamicJsonFormComponent {
       const fullKey = parentKey ? `${parentKey}.${key}` : key;
       const fieldMetadata = metadata[key] || {};
 
-      // Determine if the current or parent level is userDefined
-      const isUserDefined = this.isUserDefinedField(fieldMetadata) || this.isUserDefinedField(metadata);
-      console.log(`Processing key: ${fullKey}, isUserDefined: ${isUserDefined}`);
-
       if (this.isArray(jsonObject[key])) {
         jsonObject[key].forEach((item: any, index: number) => {
           const arrayMetadata = fieldMetadata['nestedMetadata'] || {};
@@ -199,59 +203,20 @@ export class DynamicJsonFormComponent {
         });
       } else if (this.isObject(jsonObject[key])) {
         const nestedMetadata = fieldMetadata['nestedMetadata'] || {};
-        this.createFormControls(
-          jsonObject[key],
-          isUserDefined ? this.markMetadataUserDefined(nestedMetadata) : nestedMetadata,
-          fullKey
-        );
+        this.createFormControls(jsonObject[key], nestedMetadata, fullKey);
       } else {
         const validators = [];
         if (fieldMetadata['required']) validators.push(Validators.required);
         if (fieldMetadata['maxLength']) validators.push(Validators.maxLength(fieldMetadata['maxLength']));
 
-        if (isUserDefined) {
-          // Create editable key-value pair for userDefined fields
-          console.log(`Adding userDefined control for key: ${fullKey}`);
+        if (this.isUserDefinedField(metadata, key)) {
           this.formGroup.addControl(fullKey + '_key', new FormControl(key, validators));
           this.formGroup.addControl(fullKey, new FormControl(jsonObject[key] ?? '', validators));
         } else {
-          // Standard form control
-          console.log(`Adding standard control for key: ${fullKey}`);
           this.formGroup.addControl(fullKey, new FormControl(jsonObject[key] ?? '', validators));
         }
       }
     });
-  }
-
-  markMetadataUserDefined(metadata: Metadata): Metadata {
-    const updatedMetadata: Metadata = {};
-    Object.keys(metadata).forEach((key) => {
-      updatedMetadata[key] = {
-        ...metadata[key],
-        userDefined: true,
-        nestedMetadata: metadata[key]?.nestedMetadata
-          ? this.markMetadataUserDefined(metadata[key]?.nestedMetadata)
-          : undefined,
-      };
-      console.log(`Marked metadata for key: ${key} as userDefined`);
-    });
-    return updatedMetadata;
-  }
-
-  isUserDefinedField(metadataField: any): boolean {
-    const isUserDefined = metadataField && typeof metadataField === 'object' && metadataField['userDefined'] === true;
-    console.log(`isUserDefinedField check: ${isUserDefined}`);
-    return isUserDefined;
-  }
-
-  getOrCreateFormControl(key: string): FormControl {
-    let control = this.formGroup.get(key) as FormControl;
-
-    if (!control) {
-      control = new FormControl('');
-      this.formGroup.addControl(key, control);
-    }
-    return control;
   }
 
   objectKeys(obj: any): string[] {
@@ -266,6 +231,16 @@ export class DynamicJsonFormComponent {
     return value && typeof value === 'object' && !Array.isArray(value);
   }
 
+  getOrCreateFormControl(key: string): FormControl {
+    let control = this.formGroup.get(key) as FormControl;
+
+    if (!control) {
+      control = new FormControl('');
+      this.formGroup.addControl(key, control);
+    }
+    return control;
+  }
+
   showPopup(content: string | undefined) {
     if (content) {
       this.popupContent = content;
@@ -277,6 +252,77 @@ export class DynamicJsonFormComponent {
   }
 
   formatKey(key: string): string {
-    return key;
+    return key.replace(/_/g, ' ').replace(/\./g, ' > ');
   }
+
+  isUserDefinedField(metadataField: any, parentKey?: string, currentKey?: string): boolean {
+    console.log(metadataField, 'sa',parentKey, 'ga', currentKey);
+    
+    // Check if current field is explicitly marked as userDefined
+    if (metadataField?.userDefined === true) {
+      return true;
+    }
+  
+    // If parentKey exists, find the parent's metadata
+    if (parentKey) {
+      
+      const parentMetadata = this.metadata[parentKey];
+      if (parentMetadata?.userDefined === true) {
+        return true;
+      }
+  
+      // If nestedMetadata exists for the parent, look deeper
+      if (parentMetadata?.nestedMetadata && currentKey) {
+        const immediateParentMetadata = parentMetadata.nestedMetadata[currentKey];
+        if (immediateParentMetadata?.userDefined === true) {
+          return true;
+        }
+      }
+    }
+  
+    // Default to false if no userDefined flag is found
+    return false;
+  }  
+  findParentOfKey(keyToFind: string, jsonInput: any): any | null {
+    // Recursive helper function to search for the key's parent
+    function recursiveSearch(obj: any, parent: any = null): any | null {
+      if (typeof obj !== 'object' || obj === null) {
+        return null; // Skip non-object types
+      }
+  
+      for (const key in obj) {
+        const value = obj[key];
+  
+        // If the key is found, return the parent
+        if (key === keyToFind) {
+          return parent;
+        }
+  
+        // If the value is an array, search each element
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            if (typeof item === 'object' && item !== null) {
+              const found = recursiveSearch(item, obj);
+              if (found) {
+                return found;
+              }
+            }
+          }
+        }
+  
+        // If the value is a nested object, search it
+        if (typeof value === 'object' && value !== null) {
+          const found = recursiveSearch(value, obj);
+          if (found) {
+            return found;
+          }
+        }
+      }
+  
+      return null; // Key not found in this branch
+    }
+  
+    return recursiveSearch(jsonInput);
+  }
+  
 }

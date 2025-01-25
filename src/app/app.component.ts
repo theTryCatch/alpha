@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DynamicJsonFormComponent, Metadata } from './dynamic-json-form/dynamic-json-form.component';
+import { SelectAddEntryComponent } from './select-add-entry/select-add-entry.component';
 
 @Component({
   selector: 'app-root',
@@ -8,10 +9,11 @@ import { DynamicJsonFormComponent, Metadata } from './dynamic-json-form/dynamic-
   template: `
     <div class="container mx-auto p-4">
       <h1 class="text-2xl font-bold mb-4">Dynamic JSON Form</h1>
-      <app-dynamic-json-form [jsonInput]="sampleJson" [metadata]="metadata"></app-dynamic-json-form>
+      <!-- <app-dynamic-json-form [jsonInput]="sampleJson" [metadata]="metadata"></app-dynamic-json-form> -->
+      <app-select-add-entry></app-select-add-entry>
     </div>
   `,
-  imports: [CommonModule, DynamicJsonFormComponent],
+  imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent],
 })
 export class AppComponent {
   sampleJson = {
@@ -186,7 +188,7 @@ export class AppComponent {
       userDefined: true,
       nestedMetadata: {
         username: {
-          helpMessage: "The username placeholder used in the workflow.",
+          helpMessage: "sThe username placeholder used in the workflow.",
           required: true,
         },
         teamsRegPath: {
