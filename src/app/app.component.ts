@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DynamicJsonFormComponent, Metadata } from './dynamic-json-form/dynamic-json-form.component';
 import { SelectAddEntryComponent } from './select-add-entry/select-add-entry.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
@@ -10,12 +11,13 @@ import { SelectAddEntryComponent } from './select-add-entry/select-add-entry.com
     <div class="container mx-auto p-4">
       <h1 class="text-2xl font-bold mb-4">Dynamic JSON Form</h1>
       <!-- <app-dynamic-json-form [jsonInput]="sampleJson" [metadata]="metadata"></app-dynamic-json-form> -->
-      <app-select-add-entry></app-select-add-entry>
+      <app-select-add-entry [(ngModel)]="name"></app-select-add-entry>
     </div>
   `,
-  imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent],
+  imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent, FormsModule],
 })
 export class AppComponent {
+  name = "sagar";
   sampleJson = {
     "name": "ClearTeamsCache",
     "description": "A workflow to clear the Microsoft Teams client cache in multiple steps.",

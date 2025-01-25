@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
 @Component({
   selector: 'app-select-add-entry',
@@ -47,19 +48,46 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
       </form>
     </div>
   `,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SelectAddEntryComponent),
+      multi: true,
+    },
+  ],
 })
-export class SelectAddEntryComponent {
+export class SelectAddEntryComponent implements ControlValueAccessor {
   @Input() options: string[] = [];
   @Output() optionAdded = new EventEmitter<string>();
 
   form: FormGroup;
   showPopup = false;
 
+  private onChange: (value: any) => void = () => {};
+  private onTouched: () => void = () => {};
+
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       selectedOption: [''],
       newOption: [''],
     });
+
+    this.form.get('selectedOption')?.valueChanges.subscribe((value) => {
+      this.onChange(value);
+      this.onTouched();
+    });
+  }
+
+  writeValue(value: any): void {
+    this.form.get('selectedOption')?.setValue(value, { emitEvent: false });
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
   }
 
   onOptionChange(event: Event): void {
@@ -75,13 +103,13 @@ export class SelectAddEntryComponent {
     if (newOption) {
       this.optionAdded.emit(newOption);
       this.options.push(newOption);
-      this.form.reset();
+      this.form.get('selectedOption')?.setValue(newOption);
       this.closePopup();
     }
   }
 
   closePopup(): void {
     this.showPopup = false;
-    this.form.get('selectedOption')?.setValue('');
+    this.form.get('newOption')?.setValue('');
   }
 }
