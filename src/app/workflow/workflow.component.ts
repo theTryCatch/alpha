@@ -173,26 +173,42 @@ import { valueInArrayValidator } from '../workflow-library/validators/valueInArr
                                     </div>
                                     <!-- #endregion -->
 
-                                    <!-- #region Inputparams -->
+                                    <!-- Input Params -->
                                     <label class="label">Input Params</label>
-                                    <textarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="inputparams"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('inputparams')?.touched)">
+                                    <textarea
+                                        id="step-{{i}}-inputparams"
+                                        class="textarea textarea-bordered w-full"
+                                        placeholder="JSON string"
+                                        formControlName="inputparams"
+                                        (input)="adjustTextareaHeight('inputparams', i)"
+                                    ></textarea>
+                                    <div
+                                        *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.invalid &&
+                                            (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.touched)"
+                                    >
                                         <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.errors?.['invalidJson']">
-                                            Invalid json. You should have at least key specified and all key name types should be only string.
+                                            Invalid JSON. You should have at least one key specified, and all key name types should be strings.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
 
-                                    <!-- #region Outputparams -->
+                                    <!-- Output Params -->
                                     <label class="label">Output Params</label>
-                                    <textarea #inputParams class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="outputparams"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('outputparams')?.touched)">
+                                    <textarea
+                                        id="step-{{i}}-outputparams"
+                                        class="textarea textarea-bordered w-full"
+                                        placeholder="JSON string"
+                                        formControlName="outputparams"
+                                        (input)="adjustTextareaHeight('outputparams', i)"
+                                    ></textarea>
+                                    <div
+                                        *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.invalid &&
+                                            (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.touched)"
+                                    >
                                         <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.errors?.['invalidJson']">
-                                            Invalid json. You should have at least key specified and all key name types should be only string.
+                                            Invalid JSON. You should have at least one key specified, and all key name types should be strings.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
@@ -620,8 +636,8 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 commandType: [step.environment.commandType, [Validators.required]],
                 runtime: [step.environment.runtime, [Validators.required]],
                 command: [step.environment.command, [Validators.required]],
-                inputparams: [step.environment.inputparams, [jsonValidator]],
-                outputparams: [step.environment.outputparams, [jsonValidator]],
+                inputparams: [JSON.stringify(step.environment.inputparams || {}, null, 2), [jsonValidator]],
+                outputparams: [JSON.stringify(step.environment.outputparams || {}, null, 2), [jsonValidator]],
             }),
             outputVariable: [step.outputVariable, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
             successCriteria: [step.successCriteria, [Validators.required]],
@@ -723,6 +739,44 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
     
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
+    }
+    adjustTextareaHeight(field: 'globals' | 'inputparams' | 'outputparams', stepIndex?: number): void {
+        let textareaElement: HTMLTextAreaElement | null = null;
+    
+        if (field === 'globals' && this.globalsTextarea) {
+            // Use ElementRef for globals
+            textareaElement = this.globalsTextarea.nativeElement;
+        } else if (stepIndex !== undefined) {
+            // Use querySelector for step-specific textareas
+            if (field === 'inputparams') {
+                textareaElement = document.querySelector(`#step-${stepIndex}-inputparams`) as HTMLTextAreaElement;
+            } else if (field === 'outputparams') {
+                textareaElement = document.querySelector(`#step-${stepIndex}-outputparams`) as HTMLTextAreaElement;
+            }
+        }
+    
+        if (textareaElement) {
+            // Auto-adjust height
+            textareaElement.style.height = 'auto';
+            textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+    
+            try {
+                // Parse and reformat JSON
+                const control =
+                    field === 'globals'
+                        ? this.workflow_fg.get(field)
+                        : stepIndex !== undefined
+                        ? (this.steps.at(stepIndex) as FormGroup)?.get(`environment.${field}`)
+                        : null;
+    
+                if (control) {
+                    const parsedValue = JSON.parse(control.value);
+                    control.setValue(JSON.stringify(parsedValue, null, 2), { emitEvent: false });
+                }
+            } catch (e) {
+                // Ignore errors, let validation handle invalid JSON
+            }
+        }
     }
 }
 function collectAllErrors(control: AbstractControl, path: string=''): Record<string, any> {
