@@ -10,10 +10,536 @@ import { valueInArrayValidator } from '../workflow-library/validators/valueInArr
     selector: 'workflow',
     standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
-    templateUrl: './workflow.component.html',
+    template: `
+    <form (ngSubmit)="onSubmit()" [formGroup]="workflow_fg">
+    <!--region: Name -->
+    <label class="label">Name</label>
+    <input type="text" placeholder="Name of the workflow" class="input input-bordered w-full" formControlName="name"/>
+    <div *ngIf="workflow_fg.controls['name'].invalid && (workflow_fg.controls['name'].dirty || workflow_fg.controls['name'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['required']">Workflow name is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['minlength']">Workflow name should have at least {{workflow_fg.controls['name'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['maxlength']">Workflow name can have maximum of {{workflow_fg.controls['name'].errors?.['maxlength'].requiredLength}} characters.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Description -->
+    <label class="label">Description</label>
+    <textarea class="textarea textarea-bordered w-full" placeholder="Workflow description" formControlName="description"></textarea>
+    <div *ngIf="workflow_fg.controls['description'].invalid && (workflow_fg.controls['description'].dirty || workflow_fg.controls['description'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['required']">Workflow description is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['minlength']">Workflow description should have at least {{workflow_fg.controls['description'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['maxlength']">Workflow description can have maximum of {{workflow_fg.controls['description'].errors?.['maxlength'].requiredLength}} characters.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Workflow Owning Group -->
+    <label class="label">Workflow Owning Group</label>
+    <input type="text" placeholder="Workflow owning group" class="input input-bordered w-full" formControlName="workflowOwningGroup"/>
+    <div *ngIf="workflow_fg.controls['workflowOwningGroup'].invalid && (workflow_fg.controls['workflowOwningGroup'].dirty || workflow_fg.controls['workflowOwningGroup'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['required']">Workflow owning group is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['minlength']">Workflow owning group should have at least {{workflow_fg.controls['workflowOwningGroup'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['pattern']">Only alphabets, numbers, and underscores are allowed. No spaces are allowed.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Email Address -->
+    <label class="label">Email Address</label>
+    <input type="text" placeholder="Email Address" class="input input-bordered w-full" formControlName="emailAddress"/>
+    <div *ngIf="workflow_fg.controls['emailAddress'].invalid && (workflow_fg.controls['emailAddress'].dirty || workflow_fg.controls['emailAddress'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['emailAddress'].errors?.['required']">Workflow owner's email address is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['emailAddress'].errors?.['pattern']">Only ms.com or morganstanley.com domain email address is allowed.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Globals -->
+    <label class="label">Globals</label>
+    <textarea #globalsTextarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="globals" (input)="adjustGlobalsHeight()"></textarea>
+    <div *ngIf="workflow_fg.controls['globals'].invalid && (workflow_fg.controls['globals'].dirty || workflow_fg.controls['globals'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['globals'].errors?.['invalidJson']">Invalid json. You should have at least one key specified, and all key name types should be strings.</div>
+    </div>
+    <!-- #endregion -->
+
+    <!-- #region: Steps -->
+     <div class="collapse collapse-arrow border textarea-bordered">
+        <input type="checkbox" class="peer" />
+        <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content">
+            Steps - {{steps.controls.length}}
+        </div>
+        <div class="collapse-content overflow-auto flex flex-col">
+            <div formArrayName="steps">
+                <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i">
+                    <div class="collapse border textarea-bordered collapse-arrow gap-1">
+                        <input type="checkbox" class="peer" title="step{{i}}" />
+                        <div class="collapse-title text-sm font-semibold bg-base-200">
+                            Step - {{i+1}} : {{step.get('name')?.value}}
+                        </div>
+                        <div class="collapse-content overflow-auto">
+                            <!-- #region: Name -->
+                            <label class="label">Name</label>
+                            <input type="text" placeholder="Name of the step" class="input input-bordered w-full" formControlName="name"/>
+
+                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('name')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('name')?.touched)">
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['required']">Step name is required.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['minlength']">Step name should have at least {{workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['maxlength']">Step name can have a maximum of {{workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                            </div>
+
+                            <!-- #endregion -->
+
+                            <!-- #region: Description -->
+
+                            <label class="label">Description</label>
+
+                            <textarea class="textarea textarea-bordered w-full" placeholder="Step description" formControlName="description"></textarea>
+
+                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('description')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('description')?.touched)">
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['required']">Step description is required.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['minlength']">Step description should have at least {{workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['maxlength']">Step description can have a maximum of {{workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                            </div>
+
+                            <!-- #endregion -->
+
+                            <!-- #region: ExecutionType -->
+
+                            <label class="label">Execution Type</label>
+                            <select class="select select-bordered w-full" formControlName="executionType">
+                                <option disabled selected>Select Execution Type</option>
+                                <option *ngFor="let type of executionTypes" [value]="type">{{type}}</option>
+                            </select>
+
+                            <!-- #endregion -->
+
+                            <!-- #region: OutputVariable -->
+
+                            <label class="label">Output Variable</label>
+
+                            <input type="text" placeholder="Output variable" class="input input-bordered w-full" formControlName="outputVariable"/>
+
+                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.touched)">
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.errors?.['required']">Output variable is required.</div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
+                            </div>
+
+                            <!-- #endregion -->
+
+                            <!-- #region SuccessCriteria -->
+                            <label class="label">Success Criteria</label>
+                            <textarea class="textarea textarea-bordered w-full" placeholder="success criteria" formControlName="successCriteria"></textarea>
+                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.touched)">
+                                success criteria is required.
+                            </div>
+                            <!-- #endregion -->
+
+                            <!-- #region Timeout -->
+                            <label class="label">Timeout</label>
+                            <input type="number" placeholder="Timeout" class="input input-bordered w-full" formControlName="timeout"/>
+                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.touched)">
+                                <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['required']">Timeout is required.</div>
+                                <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['min']">Minimum timeout should be {{workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['min'].min}} or higher.</div>
+                            </div>
+                            <!-- #endregion -->
+
+                            <!-- #region Environment -->
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="environment">
+                                <input type="checkbox" class="peer" title="environment"/>
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    Environment
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region CommandType -->
+                                    <label class="label">Command Type</label>
+                                    <select class="select select-bordered w-full" formControlName="commandType">
+                                        <option disabled selected>Select Command Type</option>
+                                        <option *ngFor="let type of commandTypes" [value]="type">{{type}}</option>
+                                    </select>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Runtime -->
+                                    <label class="label">Runtime</label>
+                                    <select class="select select-bordered w-full" formControlName="runtime">
+                                        <option disabled selected>Select Runtime</option>
+                                        <option *ngFor="let runtime of runtimeTypes" [value]="runtime">{{runtime}}</option>
+                                    </select>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Command -->
+                                    <label class="label">Command</label>
+                                    <input type="text" placeholder="Command" class="input input-bordered w-full" formControlName="command"/>
+                                    <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.touched)">
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.errors?.['required']">Command is required.</div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Inputparams -->
+                                    <label class="label">Input Params</label>
+                                    <textarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="inputparams"></textarea>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.invalid && 
+                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('inputparams')?.touched)">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.errors?.['invalidJson']">
+                                            Invalid json. You should have at least key specified and all key name types should be only string.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Outputparams -->
+                                    <label class="label">Output Params</label>
+                                    <textarea #inputParams class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="outputparams"></textarea>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.invalid && 
+                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('outputparams')?.touched)">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.errors?.['invalidJson']">
+                                            Invalid json. You should have at least key specified and all key name types should be only string.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+                        
+                            <!-- #region: OnSuccessSequential -->
+                             <div class="collapse collapse-arrow-border textarea-bordered" formGroupName="onSuccessSequential">
+                                <input type="checkbox" class="peer" title="OnSuccessSequential" />
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    On Success Sequential
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region ActionType -->
+                                    <label class="label">Action Type</label>
+                                    <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                        <option disabled selected>Select Action Type</option>
+                                        <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                    </select>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.errors?.['required']">
+                                            Action type is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                        <label class="label">Step</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                            <option disabled selected>Select a step</option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['required']">
+                                                Step is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                        <label class="label">Trigger</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                            <option disabled selected>Select Trigger</option>
+                                            <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['required']">
+                                                Trigger is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                        
+                                        <label class="label">Input Value</label>
+                                        <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('inputValue')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                                Input value is required.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                             </div>
+                            <!-- #endregion -->
+                            
+                            <!-- #region onUnsuccessSequential -->
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onUnsuccessSequential">
+                                <input type="checkbox" class="peer" title="onUnsuccessSequential" />
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    On Unsuccess Sequential
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region ActionType -->
+                                    <label class="label">Action Type</label>
+                                    <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                        <option disabled selected>Select Action Type</option>
+                                        <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                    </select>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.errors?.['required']">
+                                            Action type is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                        <label class="label">Step</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                            <option disabled selected>Select Step</option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['required']">
+                                                Step is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                        <label class="label">Trigger</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                            <option disabled selected>Select Trigger</option>
+                                            <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['required']">
+                                                Trigger is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label class="label">Input Value</label>
+                                    <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                            Input value is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+                        
+                            <!-- #region onError -->
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onError">
+                                <input type="checkbox" class="peer" title="onError" />
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    On Error
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region ActionType -->
+                                    <label class="label">Action Type</label>
+                                    <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                        <option disabled selected>Select Action Type</option>
+                                        <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                    </select>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.errors?.['required']">
+                                            Action type is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.value === workflowStepActionType">
+                                        <label class="label">Step</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                            <option disabled selected>Select Step</option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['required']">
+                                                Step is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.value === reservedAction_ActionType">
+                                        <label class="label">Trigger</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                            <option disabled selected>Select Trigger</option>
+                                            <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['required']">
+                                                Trigger is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label class="label">Input Value</label>
+                                    <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.errors?.['required']">
+                                            Input value is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+                        
+                            <!-- #region onTimeout -->
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onTimeout">
+                                <input type="checkbox" class="peer" title="onTimeout" />
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    On Timeout
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region ActionType -->
+                                    <label class="label">Action Type</label>
+                                    <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                        <option disabled selected>Select Action Type</option>
+                                        <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                    </select>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.errors?.['required']">
+                                            Action type is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.value === workflowStepActionType">
+                                        <label class="label">Step</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                            <option disabled selected>Select Step</option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['required']">
+                                                Step is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.value === reservedAction_ActionType">
+                                        <label class="label">Trigger</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                            <option disabled selected>Select Trigger</option>
+                                            <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['required']">
+                                                Trigger is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label class="label">Input Value</label>
+                                    <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('inputValue')?.invalid">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('inputValue')?.errors?.['required']">
+                                            Input value is required.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+
+                            <!-- #region versionRange -->
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="versionRange">
+                                <input type="checkbox" class="peer" title="versionRange" />
+                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                    Version Range
+                                </div>
+                                <div class="collapse-content overflow-auto">
+                                    <!-- #region Lowest Version -->
+                                    <label class="label">Lowest Version</label>
+                                    <input type="text" placeholder="Lowest Version" class="input input-bordered w-full" formControlName="lowestVersion"/>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.invalid && 
+                                                (workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.touched)">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.errors?.['required']">
+                                            Lowest Version is mandatory.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+
+                                    <!-- #region Highest Version -->
+                                    <label class="label">Highest Version</label>
+                                    <input type="text" placeholder="Highest Version" class="input input-bordered w-full" formControlName="highestVersion"/>
+                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.invalid && 
+                                                (workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.dirty || 
+                                                workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.touched)">
+                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.errors?.['required']">
+                                            Highest Version is mandatory.
+                                        </div>
+                                    </div>
+                                    <!-- #endregion -->
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+
+                            <!-- #region Wiki link -->
+                            <label class="label">Wiki link</label>
+                            <input type="text" placeholder="Wiki link" class="input input-bordered w-full" formControlName="wikiLink"/>
+                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.invalid && 
+                                        (workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.dirty || 
+                                        workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.touched)">
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.errors?.['required']">
+                                    Wiki link is required.
+                                </div>
+                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.errors?.['pattern']">
+                                    Only valid internal URLs with the domain ms.com or morganstanley.com is allowed.
+                                </div>
+                            </div>
+                            <!-- #endregion -->
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+    <!-- #endregion -->
+    <input type="submit" class="btn-primary btn" />
+    <div> {{collectAllErrors() | json}}</div>
+    <div>{{workflow_fg.valid}}</div>
+    <div>{{stepNames|async}}</div>
+</form>
+    `,
     styleUrl: './workflow.component.scss'
 })
-export class WorkflowComponent implements OnInit {
+export class WorkflowComponent implements OnInit, AfterViewInit {
     @ViewChild('globalsTextarea') globalsTextarea!: ElementRef<HTMLTextAreaElement>;
     @Input({ required: true }) workflow!: IWorkflowManifest;
 
@@ -23,227 +549,169 @@ export class WorkflowComponent implements OnInit {
     actionTypes = Object.values(WorkflowStepActionType);
     workflowStepActionType = WorkflowStepActionType.workflowStep;
     reservedAction_ActionType = WorkflowStepActionType.reservedAction;
-    listOfReservedActions = new BehaviorSubject<string[]>(["AbortWorkflow", "NotifyFailure", "NotifySuccess", "NotifyTimeout"]);
-    workflow_fg: FormGroup;
+    listOfReservedActions = new BehaviorSubject<string[]>(['AbortWorkflow', 'NotifyFailure', 'NotifySuccess', 'NotifyTimeout']);
+    workflow_fg!: FormGroup;
     stepNames = new BehaviorSubject<string[]>([]);
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder) {}
+
+    ngOnInit(): void {
+        this.initializeForm();
+        this.populateForm();
+        this.setupValidatorsAndSubscriptions();
+    }
+
+    ngAfterViewInit(): void {
+        this.adjustGlobalsHeight();
+    }
+
+    private initializeForm(): void {
         this.workflow_fg = this.fb.group({
-            name: this.fb.control('', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]),
-            description: this.fb.control('', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]),
-            workflowOwningGroup: this.fb.control('', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]),
-            emailAddress: this.fb.control('', [Validators.required, Validators.email, Validators.pattern(/@(ms|morganstanley)\.com$/)]),
-            globals: this.fb.control({}, jsonValidator),
+            name: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]],
+            description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+            workflowOwningGroup: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+            emailAddress: ['', [Validators.required, Validators.email, Validators.pattern(/@(ms|morganstanley)\.com$/)]],
+            globals: this.fb.control({}, [jsonValidator]),
             steps: this.fb.array([]),
         });
     }
+
+    private populateForm(): void {
+        if (this.workflow) {
+            // Populate root-level fields
+            this.workflow_fg.patchValue({
+                name: this.workflow.name || '',
+                description: this.workflow.description || '',
+                workflowOwningGroup: this.workflow.workflowOwningGroup || '',
+                emailAddress: this.workflow.emailAddress || '',
+                globals: this.workflow.globals || {},
+            });
+
+            // Populate steps
+            const stepsFormArray = this.workflow_fg.get('steps') as FormArray;
+            this.workflow.steps.forEach((step) => {
+                const stepForm = this.createStepForm(step);
+                stepsFormArray.push(stepForm);
+            });
+
+            // Initialize step names
+            this.stepNames.next(this.workflow.steps.map((step) => step.name));
+        }
+    }
+
+    private setupValidatorsAndSubscriptions(): void {
+        // Re-validate steps when step names change
+        this.stepNames.subscribe(() => {
+            this.updateValidators();
+        });
+
+        // Update step names when step values change
+        this.workflow_fg.get('steps')?.valueChanges.subscribe(() => {
+            const stepNames = (this.workflow_fg.get('steps') as FormArray).controls.map((step) => step.get('name')?.value);
+            this.stepNames.next(stepNames);
+        });
+    }
+
+    private createStepForm(step: IWorkflowStep): FormGroup {
+        return this.fb.group({
+            name: [step.name, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]],
+            description: [step.description, [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+            executionType: [step.executionType, [Validators.required]],
+            environment: this.fb.group({
+                commandType: [step.environment.commandType, [Validators.required]],
+                runtime: [step.environment.runtime, [Validators.required]],
+                command: [step.environment.command, [Validators.required]],
+                inputparams: [step.environment.inputparams, [jsonValidator]],
+                outputparams: [step.environment.outputparams, [jsonValidator]],
+            }),
+            outputVariable: [step.outputVariable, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+            successCriteria: [step.successCriteria, [Validators.required]],
+            timeout: [step.timeout, [Validators.required, Validators.min(0)]],
+            onSuccessSequential: this.fb.group({
+                actionType: [step.onSuccessSequential.actionType, [Validators.required]],
+                step: [step.onSuccessSequential.step],
+                trigger: [step.onSuccessSequential.trigger],
+                inputValue: [step.onSuccessSequential.inputValue],
+            }),
+            onUnsuccessSequential: this.fb.group({
+                actionType: [step.onUnsuccessSequential.actionType, [Validators.required]],
+                step: [step.onUnsuccessSequential.step],
+                trigger: [step.onUnsuccessSequential.trigger],
+                inputValue: [step.onUnsuccessSequential.inputValue],
+            }),
+            onError: this.fb.group({
+                actionType: [step.onError.actionType, [Validators.required]],
+                step: [step.onError.step],
+                trigger: [step.onError.trigger],
+                inputValue: [step.onError.inputValue],
+            }),
+            onTimeout: this.fb.group({
+                actionType: [step.onTimeout.actionType, [Validators.required]],
+                step: [step.onTimeout.step],
+                trigger: [step.onTimeout.trigger],
+                inputValue: [step.onTimeout.inputValue],
+            }),
+            wikiLink: [step.wikiLink, [Validators.required, Validators.pattern(/^(http|https):\/\/([a-zA-Z0-9-]+\.)*(ms|morganstanley)\.com\/?.*$/)]],
+            versionRange: this.fb.group({
+                lowestVersion: [step.versionRange.lowestVersion, [Validators.required]],
+                highestVersion: [step.versionRange.highestVersion, [Validators.required]],
+            }),
+        });
+    }
+
+    private updateValidators(): void {
+        const steps = this.steps.controls;
+
+        steps.forEach((step) => {
+            const stepName = step.get('name')?.value;
+
+            const onSuccessSequentialStep = step.get('onSuccessSequential')?.get('step');
+            if (onSuccessSequentialStep) {
+                onSuccessSequentialStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onSuccessSequentialStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onUnsuccessSequentialStep = step.get('onUnsuccessSequential')?.get('step');
+            if (onUnsuccessSequentialStep) {
+                onUnsuccessSequentialStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onUnsuccessSequentialStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onErrorStep = step.get('onError')?.get('step');
+            if (onErrorStep) {
+                onErrorStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onErrorStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onTimeoutStep = step.get('onTimeout')?.get('step');
+            if (onTimeoutStep) {
+                onTimeoutStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onTimeoutStep.updateValueAndValidity({ emitEvent: false });
+            }
+        });
+    }
+
     get steps(): FormArray {
         return this.workflow_fg.get('steps') as FormArray;
     }
 
-    createStepForm(step: IWorkflowStep): FormGroup {
-        const formGroup = this.fb.group({
-            name: this.fb.control(step.name, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]),
-            description: this.fb.control(step.description, [Validators.required, Validators.minLength(10), Validators.maxLength(500)]),
-            executionType: this.fb.control(step.executionType, [Validators.required]),
-            environment: this.fb.group({
-                commandType: this.fb.control(step.environment.commandType, [Validators.required]),
-                runtime: this.fb.control(step.environment.runtime, [Validators.required]),
-                command: this.fb.control(step.environment.command, [Validators.required]),
-                inputparams: this.fb.control(step.environment.inputparams, [jsonValidator]),
-                outputparams: this.fb.control(step.environment.outputparams, [jsonValidator]),
-            }),
-            outputVariable: this.fb.control(step.outputVariable, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]),
-            successCriteria: this.fb.control(step.successCriteria, [Validators.required]),
-            timeout: this.fb.control(step.timeout, [Validators.required, Validators.min(0)]),
-            onSuccessSequential: this.fb.group({
-                actionType: this.fb.control(step.onSuccessSequential.actionType, [Validators.required]),
-                step: this.fb.control(step.onSuccessSequential.step),
-                trigger: this.fb.control(step.onSuccessSequential.trigger),
-                inputValue: this.fb.control(step.onSuccessSequential.inputValue),
-            }),
-            onUnsuccessSequential: this.fb.group({
-                actionType: this.fb.control(step.onUnsuccessSequential.actionType, [Validators.required]),
-                step: this.fb.control(step.onUnsuccessSequential.step),
-                trigger: this.fb.control(step.onUnsuccessSequential.trigger),
-                inputValue: this.fb.control(step.onUnsuccessSequential.inputValue),
-            }),
-            onError: this.fb.group({
-                actionType: this.fb.control(step.onError.actionType, [Validators.required]),
-                step: this.fb.control(step.onError.step),
-                trigger: this.fb.control(step.onError.trigger),
-                inputValue: this.fb.control(step.onError.inputValue),
-            }),
-            onTimeout: this.fb.group({
-                actionType: this.fb.control(step.onTimeout.actionType, [Validators.required]),
-                step: this.fb.control(step.onTimeout.step),
-                trigger: this.fb.control(step.onTimeout.trigger),
-                inputValue: this.fb.control(step.onTimeout.inputValue),
-            }),
-            wikiLink: this.fb.control(step.wikiLink, [Validators.required, Validators.pattern(/^(http|https):\/\/([a-zA-Z0-9-]+\.)*(ms|morganstanley)\.com\\?/)]),
-            versionRange: this.fb.group({
-                lowestVersion: this.fb.control(step.versionRange.lowestVersion, [Validators.required]),
-                highestVersion: this.fb.control(step.versionRange.highestVersion, [Validators.required]),
-            }),
-        });
-        // We are adding the essential validators based on the actionType. The additional validators are added in the valueChanges subscription and also a few after patching the values.
-
-        // Scope for we can consolidate all these sections into a single function.
-
-        if (step.onSuccessSequential.actionType === this.workflowStepActionType) {
-            formGroup.get('onSuccessSequential.step')?.setValidators(Validators.required);
+    onSubmit(): void {
+        if (this.workflow_fg.valid) {
+            const updatedWorkflow = this.workflow_fg.value;
+            console.log('Updated Workflow:', updatedWorkflow);
+        } else {
+            console.log('Form is invalid');
         }
-
-        if (step.onSuccessSequential.actionType === this.reservedAction_ActionType) {
-            formGroup.get('onSuccessSequential.trigger')?.setValidators(Validators.required);
-            formGroup.get('onSuccessSequential.inputValue')?.setValidators(Validators.required);
-        }
-
-        if (step.onUnsuccessSequential.actionType === this.workflowStepActionType) {
-            formGroup.get('onUnsuccessSequential.step')?.setValidators(Validators.required);
-        }
-
-        if (step.onUnsuccessSequential.actionType === this.reservedAction_ActionType) {
-            formGroup.get('onUnsuccessSequential.trigger')?.setValidators(Validators.required);
-            formGroup.get('onUnsuccessSequential.inputValue')?.setValidators(Validators.required);
-        }
-
-        if (step.onError.actionType === this.workflowStepActionType) {
-            formGroup.get('onError.step')?.setValidators(Validators.required);
-        }
-
-        if (step.onError.actionType === this.reservedAction_ActionType) {
-            formGroup.get('onError.trigger')?.setValidators(Validators.required);
-            formGroup.get('onError.inputValue')?.setValidators(Validators.required);
-        }
-        if (step.onTimeout.actionType === this.workflowStepActionType) {
-            formGroup.get('onTimeout.step')?.setValidators(Validators.required);
-        }
-
-        if (step.onTimeout.actionType === this.reservedAction_ActionType) {
-            formGroup.get('onTimeout.trigger')?.setValidators(Validators.required);
-            formGroup.get('onTimeout.inputValue')?.setValidators(Validators.required);
-        }
-
-        return formGroup;
     }
+
     adjustGlobalsHeight(): void {
-        const textArea = this.globalsTextarea.nativeElement;
-        textArea.style.height = 'auto';
-        textArea.style.height = textArea.scrollHeight + 'px';
+        if (this.globalsTextarea) {
+            this.globalsTextarea.nativeElement.style.height = 'auto';
+            this.globalsTextarea.nativeElement.style.height = `${this.globalsTextarea.nativeElement.scrollHeight}px`;
+        }
     }
-
-    getStepNames(): BehaviorSubject<string[]> {
-        return this.stepNames;
-    }
-
-    ngOnInit(): void {
-        this.stepNames.next(this.workflow.steps.map(step => step.name));
-
-        this.workflow_fg.patchValue(this.workflow);
-
-        const stepsFromArray = this.workflow_fg.get('steps') as FormArray;
-
-        this.workflow.steps.forEach(step => {
-            stepsFromArray.push(this.createStepForm(step));
-        });
-
-        this.steps.controls.forEach((step, index) => {
-            // Run the code block immediately after patching the values. By this time the controls are expected to have essential validators.
-            if (step.get('onSuccessSequential')?.get('actionType')?.value === this.workflowStepActionType) {
-                step.get('onSuccessSequential')?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get('name')?.value));
-            }
-
-            if (step.get('onSuccessSequential')?.get('actionType')?.value === this.reservedAction_ActionType) {
-                step.get('onSuccessSequential')?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-            }
-
-            if (step.get('onUnsuccessSequential')?.get('actionType')?.value === this.workflowStepActionType) {
-                step.get('onUnsuccessSequential')?.get('step')?.addValidators(valueInArrayValidator(this.getStepNames(), step.get('name')?.value));
-            }
-            if (step.get('onUnsuccessSequential')?.get('actionType')?.value === this.reservedAction_ActionType) {
-                step.get('onUnsuccessSequential')?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-            }
-
-            if (step.get('onError')?.get('actionType')?.value === this.workflowStepActionType) {
-                step.get('onError')?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get('name')?.value));
-            }
-
-            if (step.get('onError')?.get('actionType')?.value === this.reservedAction_ActionType) {
-                step.get('onError')?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-            }
-
-            if (step.get('onTimeout')?.get('actionType')?.value === this.workflowStepActionType) {
-                step.get('onTimeout')?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get('name')?.value));
-            }
-
-            if (step.get('onTimeout')?.get('actionType')?.value === this.reservedAction_ActionType) {
-                step.get('onTimeout')?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-            }
-
-            step.updateValueAndValidity();
-        });
-        // Subscribe to the value changes of the steps and add the additional validators based on the actionType.
-        (this.workflow_fg.get('steps') as FormArray).controls.forEach((step, Index) => {
-            step.valueChanges.subscribe((value) => {
-                // Updating the stepliames observable with the latest step names..
-                this.workflow_fg.get('steps')?.valueChanges.subscribe((value) => {
-                    this.stepNames.next(value.map((step: IWorkflowStep) => step.name));
-                });
-
-                if (value.onSuccessSequential.actionType === this.workflowStepActionType) {
-                    step.get("onSuccessSequential")?.get('step')?.addValidators(Validators.required);
-                    step.get("onSuccessSequential")?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get("name")?.value));
-                }
-
-                if (value.onSuccessSequential.actionType === this.reservedAction_ActionType) {
-                    step.get("onSuccessSequential")?.get('trigger')?.addValidators(Validators.required);
-                    step.get("onSuccessSequential")?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get("name")?.value));
-                    step.get("onSuccessSequential")?.get('inputValue')?.addValidators(Validators.required);
-                }
-
-                if (value.onUnsuccessSequential.actionType === this.workflowStepActionType) {
-                    step.get('onUnsuccessSequential')?.get('step')?.addValidators(Validators.required);
-                    step.get('onUnsuccessSequential')?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get('name')?.value));
-                }
-
-                if (value.onUnsuccessSequential.actionType === this.reservedAction_ActionType) {
-                    step.get('onUnsuccessSequential')?.get('trigger')?.addValidators(Validators.required);
-                    step.get('onUnsuccessSequential')?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-                    step.get('onUnsuccessSequential')?.get('inputValue')?.addValidators(Validators.required);
-                }
-
-                if (value.onError.actionType === this.workflowStepActionType) {
-                    step.get("onError")?.get('step')?.addValidators(Validators.required);
-                    step.get("onError")?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get('name')?.value));
-                }
-
-                if (value.onError.actionType === this.reservedAction_ActionType) {
-                    step.get("onError")?.get('trigger')?.addValidators(Validators.required);
-                    step.get("onError")?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get('name')?.value));
-                    step.get("onError")?.get('inputValue')?.addValidators(Validators.required);
-                }
-                if (value.onTimeout.actionType === this.workflowStepActionType) {
-                    step.get("onTimeout")?.get('step')?.addValidators(Validators.required);
-                    step.get("onTimeout")?.get('step')?.addValidators(valueInArrayValidator(this.stepNames, step.get("name")?.value));
-                }
-
-                if (value.onTimeout.actionType === this.reservedAction_ActionType) {
-                    step.get("onTimeout")?.get('trigger')?.addValidators(Validators.required);
-                    step.get("onTimeout")?.get('trigger')?.addValidators(valueInArrayValidator(this.listOfReservedActions, step.get("name")?.value));
-                    step.get("onTimeout")?.get('inputValue')?.addValidators(Validators.required);
-                }
-            });
-        });
-    }
-
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
-    }
-
-    onSubmit() {
-        this.workflow_fg.markAllAsTouched();
-        console.log(this.workflow_fg.get('steps'));
     }
 }
 function collectAllErrors(control: AbstractControl, path: string=''): Record<string, any> {

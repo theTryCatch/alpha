@@ -56,7 +56,6 @@ export class AppComponent {
         "onSuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
           "step": "CheckTeamsProcessRunningV2",
-          "trigger": "onStart"
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
@@ -96,7 +95,6 @@ export class AppComponent {
         "onSuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
           "step": "GetTeamsFootprintV2",
-          "trigger": "onStart"
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
