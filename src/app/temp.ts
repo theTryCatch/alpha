@@ -24,32 +24,31 @@ import {
     reservedActionTypes = ["AbortWorkflow", "NotifyFailure", "NotifySuccess", "NotifyTimeout"];
   
     workflow_fg!: FormGroup;
-    stepNames$: BehaviorSubject<string[]> = new BehaviorSubject<string[]>([]);
+    stepNames$ = new BehaviorSubject<string[]>([]);
   
     constructor(private fb: FormBuilder) {}
   
     ngOnInit(): void {
-      // Initialize the form with an empty steps FormArray
       this.workflow_fg = this.fb.group({
         name: ['', [Validators.required, Validators.pattern(/[a-zA-Z0-9_\s]/), Validators.minLength(3), Validators.maxLength(50)]],
         description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
         workflowId: ['', [Validators.required, Validators.pattern(/^\S+$/), Validators.minLength(3), Validators.maxLength(500)]],
-        emailAddress: ['', [Validators.required, Validators.email]],
+        emailAddress: ['', [Validators.required, Validators.email, Validators.pattern(/@(ms|morganstanley)\.com$/)]],
         globals: ['', [jsonValidator]],
-        steps: this.fb.array([]) // Ensure steps FormArray is always initialized
+        steps: this.fb.array([]) // ✅ Ensures steps FormArray is always initialized
       });
   
       const stepsArray = this.workflow_fg.get('steps') as FormArray;
   
-      // Populate steps dynamically
+      // ✅ Populate steps dynamically
       this.workflow?.steps?.forEach((step) => {
         stepsArray.push(this.createStepForm(step));
       });
   
-      // Ensure the step names list is always up-to-date
+      // ✅ Ensure stepNames$ is updated correctly
       this.updateStepNames();
   
-      // Subscribe to step name changes
+      // ✅ Subscribe to valueChanges to update step names dynamically
       stepsArray.valueChanges.subscribe(() => {
         this.updateStepNames();
         stepsArray.controls.forEach((step) => {
