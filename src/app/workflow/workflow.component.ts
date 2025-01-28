@@ -322,14 +322,13 @@ import { valueInArrayValidator } from '../workflow-library/validators/valueInArr
                                                 Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.value}}' not allowed. 
                                                 Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <label class="label">Input Value</label>
-                                    <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
-                                            Input value is required.
+                                            <label class="label">Input Value</label>
+                                            <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
+                                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                                    Input value is required.
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- #endregion -->
@@ -584,8 +583,8 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 description: this.workflow.description || '',
                 workflowOwningGroup: this.workflow.workflowOwningGroup || '',
                 emailAddress: this.workflow.emailAddress || '',
-                globals: this.workflow.globals || {},
-            });
+                globals: JSON.stringify(this.workflow.globals || {}, null, 2), // Convert object to string
+            });            
 
             // Populate steps
             const stepsFormArray = this.workflow_fg.get('steps') as FormArray;
@@ -709,7 +708,19 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             this.globalsTextarea.nativeElement.style.height = 'auto';
             this.globalsTextarea.nativeElement.style.height = `${this.globalsTextarea.nativeElement.scrollHeight}px`;
         }
+    
+        try {
+            // Parse JSON string to object for validation
+            const globalsControl = this.workflow_fg.get('globals');
+            if (globalsControl) {
+                const parsedGlobals = JSON.parse(globalsControl.value);
+                globalsControl.setValue(JSON.stringify(parsedGlobals, null, 2), { emitEvent: false }); // Reformat the JSON
+            }
+        } catch (e) {
+            // Do nothing, let the validator handle invalid JSON
+        }
     }
+    
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
     }
