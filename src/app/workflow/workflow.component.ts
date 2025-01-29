@@ -667,10 +667,10 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 outputparams: this.fb.control<string | null>(step?.environment?.outputparams ? JSON.stringify(step.environment.outputparams) : null),
             }),
 
-            onSuccessSequential: this.createActionHandlerForm(step, "onSuccessSequential"),
-            onUnsuccessSequential: this.createActionHandlerForm(step, "onUnsuccessSequential"),
-            onError: this.createActionHandlerForm(step, "onError"),
-            onTimeout: this.createActionHandlerForm(step, "onTimeout"),
+            onSuccessSequential: this.createActionHandlerForm("onSuccessSequential", step),
+            onUnsuccessSequential: this.createActionHandlerForm("onUnsuccessSequential", step),
+            onError: this.createActionHandlerForm("onError", step),
+            onTimeout: this.createActionHandlerForm("onTimeout", step),
 
             versionRange: this.fb.group<IVersionRangeForm>({
                 lowestVersion: this.fb.control(step?.versionRange?.lowestVersion ?? '', { nonNullable: true, validators: [Validators.required] }),
@@ -689,8 +689,8 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         );
     }
     createActionHandlerForm(
-        step?: IWorkflowStep,
-        actionTypeKey: "onSuccessSequential" | "onUnsuccessSequential" | "onError" | "onTimeout" = "onSuccessSequential"
+        actionTypeKey: "onSuccessSequential" | "onUnsuccessSequential" | "onError" | "onTimeout",
+        step?: IWorkflowStep
     ): FormGroup<IActionHandlerForm> {
         const actionData = step ? step[actionTypeKey] : null;
 
@@ -703,10 +703,9 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
 
-        // Dynamic Validation: Listen for changes in actionType
         actionTypeControl.valueChanges.subscribe((value) => {
             if (value === WorkflowStepActionType.workflowStep) {
-                stepControl.setValidators([Validators.required, Validators.minLength(1)]);
+                stepControl.setValidators([Validators.required]);
                 triggerControl.clearValidators();
                 inputValueControl.clearValidators();
             } else if (value === WorkflowStepActionType.reservedAction) {
@@ -719,7 +718,6 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 inputValueControl.clearValidators();
             }
 
-            // Update form validity state
             stepControl.updateValueAndValidity();
             triggerControl.updateValueAndValidity();
             inputValueControl.updateValueAndValidity();
@@ -736,7 +734,13 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
     onSubmit() {
+        if (this.workflow_fg.invalid) {
+            this.workflow_fg.markAllAsTouched();
+            console.log('Form is invalid:', this.collectAllErrors());
+            return;
+        }
 
+        console.log('Form submitted successfully:', this.workflow_fg.value);
     }
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
