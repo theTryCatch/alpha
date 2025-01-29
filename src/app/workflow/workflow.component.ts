@@ -70,6 +70,13 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
             Steps - {{steps.controls.length}}
         </div>
         <div class="collapse-content overflow-auto flex flex-col">
+
+            <!--#region Step Actions -->
+            <div class="flex justify-between p-2">
+                <button class="btn btn-primary" (click)="addStep()">+ Add Step</button>
+            </div>
+            <!-- #endregion -->
+
             <div formArrayName="steps">
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i">
                     <div class="collapse-open border textarea-bordered collapse-arrow gap-1">
@@ -529,6 +536,7 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
 
                         </div>
                     </div>
+                    <button class="btn btn-error mt-2" (click)="removeStep(i)">❌ Remove Step</button>
                 </div>
             </div>
         </div>
@@ -630,7 +638,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         this.steps.valueChanges.subscribe(() => {
             const names = this.steps.controls.map(step => step.get('name')?.value || '');
             this.stepNames.next(names);
-    
+
             // 🔴 Force revalidation of all "step" controls when step names change
             this.steps.controls.forEach(stepGroup => {
                 const handlers = ['onSuccessSequential', 'onUnsuccessSequential', 'onError', 'onTimeout'];
@@ -646,7 +654,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             });
         });
     }
-    
+
     private populateForm(workflowData?: IWorkflowManifest): void {
         if (!workflowData) {
             return; // No data to populate
