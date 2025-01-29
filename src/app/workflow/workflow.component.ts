@@ -648,9 +648,15 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         stepsArray.clear(); // Clear existing steps before adding new ones
 
         workflowData.steps.forEach((step) => {
-            stepsArray.push(this.createStepFormGroup(step));
+            const stepGroup = this.createStepFormGroup(step);
+            stepsArray.push(stepGroup);
         });
+
+        // Force Validation for Initial Load
+        this.workflow_fg.markAllAsTouched();
+        this.workflow_fg.updateValueAndValidity();
     }
+
     private createStepFormGroup(step?: IWorkflowStep): FormGroup<IWorkflowStepForm> {
         const stepGroup = this.fb.group<IWorkflowStepForm>({
             name: this.fb.control(step?.name ?? '', { nonNullable: true, validators: [Validators.required] }),
@@ -699,7 +705,10 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             validators: [Validators.required],
         });
 
-        const stepControl = this.fb.control<string | null>(actionData?.step ?? null);
+        const stepControl = this.fb.control<string | null>(actionData?.step ?? null, {
+            validators: actionData?.actionType === WorkflowStepActionType.workflowStep ? [Validators.required] : [],
+        });
+
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
 
@@ -730,18 +739,21 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             inputValue: inputValueControl,
         });
     }
+
     get steps(): FormArray<FormGroup<IWorkflowStepForm>> {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
     onSubmit() {
         if (this.workflow_fg.invalid) {
-            this.workflow_fg.markAllAsTouched();
             console.log('Form is invalid:', this.collectAllErrors());
+            this.workflow_fg.markAllAsTouched();
+            this.workflow_fg.updateValueAndValidity();
             return;
         }
 
-        console.log('Form submitted successfully:', this.workflow_fg.value);
+        console.log('Form is valid, submitting:', this.workflow_fg.value);
     }
+
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
     }
