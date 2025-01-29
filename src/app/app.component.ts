@@ -55,7 +55,7 @@ export class AppComponent {
         "timeout": 60,
         "onSuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
-          "step": "",
+          "step": "sag",
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,

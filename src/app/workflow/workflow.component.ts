@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { jsonValidator } from '../workflow-library/validators/json.validator';
 import { valueInArrayValidator } from '../workflow-library/validators/valueInArray.validator';
@@ -705,9 +705,16 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             validators: [Validators.required],
         });
 
-        const stepControl = this.fb.control<string | null>(actionData?.step ?? null, {
-            validators: actionData?.actionType === WorkflowStepActionType.workflowStep ? [Validators.required] : [],
-        });
+        const stepControlValidators = [
+            Validators.required,
+            valueInArrayValidator(this.stepNames)
+        ];
+
+        const stepControl = this.fb.control<string | null>(
+            actionData?.step ?? null,
+            actionData?.actionType === WorkflowStepActionType.workflowStep ? stepControlValidators : []
+        );
+
 
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
