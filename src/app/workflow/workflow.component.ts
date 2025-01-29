@@ -628,9 +628,25 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
     }
     private trackStepNames(): void {
         this.steps.valueChanges.subscribe(() => {
-            this.stepNames.next(this.steps.controls.map(step => step.get('name')?.value || ''));
+            const names = this.steps.controls.map(step => step.get('name')?.value || '');
+            this.stepNames.next(names);
+    
+            // 🔴 Force revalidation of all "step" controls when step names change
+            this.steps.controls.forEach(stepGroup => {
+                const handlers = ['onSuccessSequential', 'onUnsuccessSequential', 'onError', 'onTimeout'];
+                handlers.forEach(handlerKey => {
+                    const actionHandlerGroup = stepGroup.get(handlerKey) as FormGroup<IActionHandlerForm>;
+                    if (actionHandlerGroup) {
+                        const stepControl = actionHandlerGroup.get('step');
+                        if (stepControl) {
+                            stepControl.updateValueAndValidity({ emitEvent: false });
+                        }
+                    }
+                });
+            });
         });
     }
+    
     private populateForm(workflowData?: IWorkflowManifest): void {
         if (!workflowData) {
             return; // No data to populate

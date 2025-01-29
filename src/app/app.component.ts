@@ -55,7 +55,7 @@ export class AppComponent {
         "timeout": 60,
         "onSuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
-          "step": "sag",
+          "step": "CheckTeamsProcessRunningV2",
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,

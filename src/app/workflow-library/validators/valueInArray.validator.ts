@@ -1,12 +1,12 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import { BehaviorSubject } from "rxjs";
 
-export function valueInArrayValidator(list$: BehaviorSubject<string[]>): ValidatorFn {
-  return (control: AbstractControl) => {
-      const validValues = list$.getValue(); // Get current step names
-      if (control.value && !validValues.includes(control.value)) {
-          return { valueNotAllowed: { allowedList: validValues, actual: control.value } };
+export function valueInArrayValidator(stepNames$: BehaviorSubject<string[]>): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+      const stepNames = stepNames$.getValue(); // ✅ Get latest step names
+      if (!control.value || stepNames.includes(control.value)) {
+          return null; // ✅ Valid: Step exists in the list
       }
-      return null;
+      return { valueNotAllowed: { allowedList: stepNames } }; // ❌ Invalid step reference
   };
 }
