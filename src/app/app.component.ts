@@ -5,7 +5,7 @@ import { SelectAddEntryComponent } from './select-add-entry/select-add-entry.com
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { WorkflowComponent } from './workflow/workflow.component';
-import { IWorkflowManifest, WorkflowStepActionType, WorkflowStepCommandType, WorkflowStepExecutionType, WorkflowStepRuntimeType } from './workflow-library/interfaces';
+import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType } from './workflow-library/interfaces';
 
 @Component({
   selector: 'app-root',
@@ -55,12 +55,11 @@ export class AppComponent {
         "timeout": 60,
         "onSuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
-          "step": "CheckTeamsProcessRunningV2",
+          "step": "",
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
           "step": "CheckTeamsProcessRunningV1",
-          "trigger": "NotifyFailure"
         },
         "onError": {
           "actionType": WorkflowStepActionType.reservedAction,

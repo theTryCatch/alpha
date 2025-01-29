@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { IWorkflowManifest, IWorkflowStep, WorkflowStepActionType, WorkflowStepCommandType, WorkflowStepExecutionType, WorkflowStepRuntimeType } from '../workflow-library/interfaces';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { jsonValidator } from '../workflow-library/validators/json.validator';
 import { valueInArrayValidator } from '../workflow-library/validators/valueInArray.validator';
-import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType, IWorkflowManifestFormGroup, IStringOfAny, IWorkflowStepForm, IWorkflowStep, IEnvironmentForm, IVersionRangeForm, IActionHandlerForm } from '../workflow-library/interfaces';
 
 @Component({
     selector: 'workflow',
@@ -228,10 +228,9 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select a step</option>
-                                            <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
-                                                {{ item }}
-                                            </option>
-
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
                                         </select>
                                         <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.invalid">
                                             <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['required']">
@@ -297,9 +296,9 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
-                                            <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
-                                                {{ item }}
-                                            </option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
                                         </select>
                                         <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.invalid">
                                             <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['required']">
@@ -365,9 +364,9 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
-                                            <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
-                                                {{ item }}
-                                            </option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
                                         </select>
                                         <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.invalid">
                                             <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['required']">
@@ -434,9 +433,9 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
-                                            <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
-                                                {{ item }}
-                                            </option>
+                                            <ng-container *ngFor="let item of (stepNames | async)">
+                                                <option [value]="item" *ngIf="item !== step.get('name')?.value">{{item}}</option>
+                                            </ng-container>
                                         </select>
                                         <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.invalid">
                                             <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['required']">
@@ -536,15 +535,13 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
     <!-- #endregion -->
     <input type="submit" class="btn-primary btn" />
 </form>
-
     `,
     styleUrl: './workflow.component.scss'
 })
 export class WorkflowComponent implements OnInit, AfterViewInit {
     @ViewChild('globalsTextarea') globalsTextarea!: ElementRef<HTMLTextAreaElement>;
-    @Input() workflow?: IWorkflowManifest;
+    @Input({ required: true }) workflow!: IWorkflowManifest;
 
-    stepNames = new BehaviorSubject<string[]>([]);
     executionTypes = Object.values(WorkflowStepExecutionType);
     commandTypes = Object.values(WorkflowStepCommandType);
     runtimeTypes = Object.values(WorkflowStepRuntimeType);
@@ -552,17 +549,229 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
     workflowStepActionType = WorkflowStepActionType.workflowStep;
     reservedAction_ActionType = WorkflowStepActionType.reservedAction;
     listOfReservedActions = new BehaviorSubject<string[]>(['AbortWorkflow', 'NotifyFailure', 'NotifySuccess', 'NotifyTimeout']);
-    workflow_fg!: FormGroup<IWorkflowManifestFormGroup>;
+    workflow_fg!: FormGroup;
+    stepNames = new BehaviorSubject<string[]>([]);
 
     constructor(private fb: FormBuilder) { }
 
     ngOnInit(): void {
         this.initializeForm();
-        this.populateForm(this.workflow);
+        this.populateForm();
+        // this.setupValidatorsAndSubscriptions();
     }
+
     ngAfterViewInit(): void {
         this.adjustGlobalsHeight();
     }
+
+    private initializeForm(): void {
+        this.workflow_fg = this.fb.group({
+            name: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]],
+            description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+            workflowOwningGroup: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+            emailAddress: ['', [Validators.required, Validators.email, Validators.pattern(/@(ms|morganstanley)\.com$/)]],
+            globals: this.fb.control({}, [jsonValidator]),
+            steps: this.fb.array([]),
+        });
+    }
+
+    private populateForm(): void {
+        if (this.workflow) {
+            // Populate root-level fields
+            this.workflow_fg.patchValue({
+                name: this.workflow.name || '',
+                description: this.workflow.description || '',
+                workflowOwningGroup: this.workflow.workflowOwningGroup || '',
+                emailAddress: this.workflow.emailAddress || '',
+                globals: JSON.stringify(this.workflow.globals || {}, null, 2),
+            });
+
+            // Populate steps
+            const stepsFormArray = this.workflow_fg.get('steps') as FormArray;
+            this.workflow.steps.forEach((step) => {
+                const stepForm = this.createStepForm(step);
+                stepForm.updateValueAndValidity({ emitEvent: false });
+                stepsFormArray.push(stepForm);
+                listAllValidatorsRecursive(stepForm);
+                
+            });
+
+            // Initialize step names
+            this.stepNames.next(this.workflow.steps.map((step) => step.name));
+        }
+    }
+    private setupValidatorsAndSubscriptions(): void {
+        // Re-validate steps when step names change
+        this.stepNames.subscribe(() => {
+            this.updateValidators();
+        });
+
+        // Update step names when step values change
+        this.workflow_fg.get('steps')?.valueChanges.subscribe(() => {
+            const stepNames = (this.workflow_fg.get('steps') as FormArray).controls.map((step) => step.get('name')?.value);
+            this.stepNames.next(stepNames);
+        });
+
+        // Add subscriptions for actionType changes
+        this.steps.controls.forEach((step) => {
+            this.addActionTypeSubscriptions(step, 'onSuccessSequential');
+            this.addActionTypeSubscriptions(step, 'onUnsuccessSequential');
+            this.addActionTypeSubscriptions(step, 'onError');
+            this.addActionTypeSubscriptions(step, 'onTimeout');
+        });
+    }
+    private addActionTypeSubscriptions(step: AbstractControl, groupName: string): void {
+        const group = step.get(groupName) as FormGroup;
+        if (!group) return; // Prevent errors in case of undefined form group
+    
+        const actionTypeControl = group.get('actionType');
+        const stepControl = group.get('step');
+        const triggerControl = group.get('trigger');
+        const inputValueControl = group.get('inputValue');
+    
+        actionTypeControl?.valueChanges.subscribe((value) => {
+            console.log(`ActionType changed to: ${value}`);
+    
+            if (value === this.workflowStepActionType) {
+                console.log(`Setting 'step' as required (no empty strings)`);
+                stepControl?.setValidators([Validators.required, Validators.minLength(1)]);
+                stepControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+    
+                triggerControl?.clearValidators();
+                inputValueControl?.clearValidators();
+            } else if (value === this.reservedAction_ActionType) {
+                console.log(`Setting 'trigger' and 'inputValue' as required`);
+                triggerControl?.setValidators([Validators.required, Validators.minLength(1)]);
+                inputValueControl?.setValidators([Validators.required, Validators.minLength(1)]);
+    
+                triggerControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+                inputValueControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+    
+                stepControl?.clearValidators();
+            } else {
+                console.log(`Clearing all validators`);
+                stepControl?.clearValidators();
+                triggerControl?.clearValidators();
+                inputValueControl?.clearValidators();
+            }
+    
+            // Explicitly force Angular to recognize the changes
+            stepControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+            triggerControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+            inputValueControl?.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+    
+            // Explicitly mark fields as touched and dirty
+            stepControl?.markAsTouched();
+            stepControl?.markAsDirty();
+            triggerControl?.markAsTouched();
+            triggerControl?.markAsDirty();
+            inputValueControl?.markAsTouched();
+            inputValueControl?.markAsDirty();
+    
+            // Force the overall form to revalidate
+            this.workflow_fg.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+    
+            // Debugging logs
+            console.log(`Step Control Value:`, stepControl?.value);
+            console.log(`Step Control Valid?`, stepControl?.valid);
+            console.log(`Step Control Errors:`, stepControl?.errors);
+            console.log(`Overall Form Valid?`, this.workflow_fg.valid);
+        });
+    
+        // Ensure initial validation fires
+        actionTypeControl?.updateValueAndValidity({ onlySelf: false, emitEvent: false });
+    }
+    private createStepForm(step: IWorkflowStep): FormGroup {
+        return this.fb.group({
+            name: [step.name, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)]],
+            description: [step.description, [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+            executionType: [step.executionType, [Validators.required]],
+            environment: this.fb.group({
+                commandType: [step.environment.commandType, [Validators.required]],
+                runtime: [step.environment.runtime, [Validators.required]],
+                command: [step.environment.command, [Validators.required]],
+                inputparams: [step.environment.inputparams, [jsonValidator]],
+                outputparams: [step.environment.outputparams, [jsonValidator]],
+            }),
+            outputVariable: [step.outputVariable, [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+            successCriteria: [step.successCriteria, [Validators.required]],
+            timeout: [step.timeout, [Validators.required, Validators.min(0)]],
+            onSuccessSequential: this.fb.group({
+                actionType: [step.onSuccessSequential.actionType, [Validators.required]],
+                step: [step.onSuccessSequential.step],
+                trigger: [step.onSuccessSequential.trigger],
+                inputValue: [step.onSuccessSequential.inputValue],
+            }),
+            onUnsuccessSequential: this.fb.group({
+                actionType: [step.onUnsuccessSequential.actionType, [Validators.required]],
+                step: [step.onUnsuccessSequential.step],
+                trigger: [step.onUnsuccessSequential.trigger],
+                inputValue: [step.onUnsuccessSequential.inputValue],
+            }),
+            onError: this.fb.group({
+                actionType: [step.onError.actionType, [Validators.required]],
+                step: [step.onError.step],
+                trigger: [step.onError.trigger],
+                inputValue: [step.onError.inputValue],
+            }),
+            onTimeout: this.fb.group({
+                actionType: [step.onTimeout.actionType, [Validators.required]],
+                step: [step.onTimeout.step],
+                trigger: [step.onTimeout.trigger],
+                inputValue: [step.onTimeout.inputValue],
+            }),
+            wikiLink: [step.wikiLink, [Validators.required, Validators.pattern(/^(http|https):\/\/([a-zA-Z0-9-]+\.)*(ms|morganstanley)\.com\/?.*$/)]],
+            versionRange: this.fb.group({
+                lowestVersion: [step.versionRange.lowestVersion, [Validators.required]],
+                highestVersion: [step.versionRange.highestVersion, [Validators.required]],
+            }),
+        });
+    }
+
+    private updateValidators(): void {
+        const steps = this.steps.controls;
+
+        steps.forEach((step) => {
+            const stepName = step.get('name')?.value;
+            const onSuccessSequentialStep = step.get('onSuccessSequential')?.get('step');
+            if (onSuccessSequentialStep) {
+                onSuccessSequentialStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onSuccessSequentialStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onUnsuccessSequentialStep = step.get('onUnsuccessSequential')?.get('step');
+            if (onUnsuccessSequentialStep) {
+                onUnsuccessSequentialStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onUnsuccessSequentialStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onErrorStep = step.get('onError')?.get('step');
+            if (onErrorStep) {
+                onErrorStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onErrorStep.updateValueAndValidity({ emitEvent: false });
+            }
+
+            const onTimeoutStep = step.get('onTimeout')?.get('step');
+            if (onTimeoutStep) {
+                onTimeoutStep.setValidators(valueInArrayValidator(this.stepNames, [stepName]));
+                onTimeoutStep.updateValueAndValidity({ emitEvent: false });
+            }
+        });
+    }
+
+    get steps(): FormArray {
+        return this.workflow_fg.get('steps') as FormArray;
+    }
+
+    onSubmit(): void {
+        if (this.workflow_fg.valid) {
+            const updatedWorkflow = this.workflow_fg.value;
+            console.log('Updated Workflow:', updatedWorkflow);
+        } else {
+            console.log('Form is invalid');
+        }
+    }
+
     adjustGlobalsHeight(): void {
         if (this.globalsTextarea) {
             this.globalsTextarea.nativeElement.style.height = 'auto';
@@ -570,186 +779,19 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         }
 
         try {
-            // Get the globals form control
-            const globalsControl = this.workflow_fg.get('globals') as FormControl<string | null>;
-
-            if (globalsControl && globalsControl.value) {
-                // Ensure valid JSON before parsing
+            // Parse JSON string to object for validation
+            const globalsControl = this.workflow_fg.get('globals');
+            if (globalsControl) {
                 const parsedGlobals = JSON.parse(globalsControl.value);
-
-                // Format the JSON with indentation (pretty print)
-                globalsControl.setValue(JSON.stringify(parsedGlobals, null, 2), { emitEvent: false });
+                globalsControl.setValue(JSON.stringify(parsedGlobals, null, 2), { emitEvent: false }); // Reformat the JSON
             }
         } catch (e) {
             // Do nothing, let the validator handle invalid JSON
         }
     }
-    private initializeForm(): void {
-        this.workflow_fg = this.fb.group<IWorkflowManifestFormGroup>({
-            name: this.fb.control('', {
-                nonNullable: true,
-                validators: [
-                    Validators.required,
-                    Validators.pattern(/^[a-zA-Z0-9_]+$/),
-                    Validators.minLength(3),
-                    Validators.maxLength(50),
-                ],
-            }),
-            description: this.fb.control('', {
-                nonNullable: true,
-                validators: [
-                    Validators.required,
-                    Validators.minLength(10),
-                    Validators.maxLength(500),
-                ],
-            }),
-            workflowOwningGroup: this.fb.control('', {
-                nonNullable: true,
-                validators: [
-                    Validators.required,
-                    Validators.pattern(/^[a-zA-Z0-9_]+$/),
-                ],
-            }),
-            emailAddress: this.fb.control('', {
-                nonNullable: true,
-                validators: [
-                    Validators.required,
-                    Validators.email,
-                    Validators.pattern(/@(ms|morganstanley)\.com$/),
-                ],
-            }),
-            globals: this.fb.control<IStringOfAny | null>(null, {
-                nonNullable: true,
-                validators: [jsonValidator],
-            }),
-            steps: this.fb.array<FormGroup<IWorkflowStepForm>>([]),
-        });
-        this.trackStepNames();
-    }
-    private trackStepNames(): void {
-        this.steps.valueChanges.subscribe(() => {
-            this.stepNames.next(this.steps.controls.map(step => step.get('name')?.value || ''));
-        });
-    }
-    private populateForm(workflowData?: IWorkflowManifest): void {
-        if (!workflowData) {
-            return; // No data to populate
-        }
 
-        this.workflow_fg.patchValue({
-            name: workflowData.name,
-            description: workflowData.description,
-            workflowOwningGroup: workflowData.workflowOwningGroup,
-            emailAddress: workflowData.emailAddress,
-            globals: workflowData.globals ?? null,
-        });
-
-        const stepsArray = this.workflow_fg.get('steps') as FormArray;
-        stepsArray.clear(); // Clear existing steps before adding new ones
-
-        workflowData.steps.forEach((step) => {
-            stepsArray.push(this.createStepFormGroup(step));
-        });
-    }
-    private createStepFormGroup(step?: IWorkflowStep): FormGroup<IWorkflowStepForm> {
-        const stepGroup = this.fb.group<IWorkflowStepForm>({
-            name: this.fb.control(step?.name ?? '', { nonNullable: true, validators: [Validators.required] }),
-            description: this.fb.control(step?.description ?? '', { nonNullable: true, validators: [Validators.required] }),
-            executionType: this.fb.control(step?.executionType ?? WorkflowStepExecutionType.sequential, { nonNullable: true, validators: [Validators.required] }),
-            outputVariable: this.fb.control(step?.outputVariable ?? '', { nonNullable: true, validators: [Validators.required] }),
-            successCriteria: this.fb.control(step?.successCriteria ?? '', { nonNullable: true, validators: [Validators.required] }),
-            timeout: this.fb.control(step?.timeout ?? 30, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
-            environment: this.fb.group<IEnvironmentForm>({
-                commandType: this.fb.control(step?.environment?.commandType ?? WorkflowStepCommandType.script, { nonNullable: true, validators: [Validators.required] }),
-                runtime: this.fb.control(step?.environment?.runtime ?? WorkflowStepRuntimeType.PowerShell, { nonNullable: true, validators: [Validators.required] }),
-                command: this.fb.control(step?.environment?.command ?? '', { nonNullable: true, validators: [Validators.required] }),
-                inputparams: this.fb.control<string | null>(step?.environment?.inputparams ? JSON.stringify(step.environment.inputparams) : null),
-                outputparams: this.fb.control<string | null>(step?.environment?.outputparams ? JSON.stringify(step.environment.outputparams) : null),
-            }),
-
-            onSuccessSequential: this.createActionHandlerForm(step, "onSuccessSequential"),
-            onUnsuccessSequential: this.createActionHandlerForm(step, "onUnsuccessSequential"),
-            onError: this.createActionHandlerForm(step, "onError"),
-            onTimeout: this.createActionHandlerForm(step, "onTimeout"),
-
-            versionRange: this.fb.group<IVersionRangeForm>({
-                lowestVersion: this.fb.control(step?.versionRange?.lowestVersion ?? '', { nonNullable: true, validators: [Validators.required] }),
-                highestVersion: this.fb.control(step?.versionRange?.highestVersion ?? '', { nonNullable: true, validators: [Validators.required] }),
-            }),
-            wikiLink: this.fb.control(step?.wikiLink ?? '', { nonNullable: true, validators: [Validators.required] }),
-        });
-
-        stepGroup.get('name')?.valueChanges.subscribe(() => this.trackStepNames());
-
-        return stepGroup;
-    }
-    getFilteredStepNames(currentStepName: string): Observable<string[]> {
-        return this.stepNames.pipe(
-            map((stepNames) => stepNames.filter((name) => name && name !== currentStepName))
-        );
-    }
-    createActionHandlerForm(
-        step?: IWorkflowStep,
-        actionTypeKey: "onSuccessSequential" | "onUnsuccessSequential" | "onError" | "onTimeout" = "onSuccessSequential"
-    ): FormGroup<IActionHandlerForm> {
-        const actionData = step ? step[actionTypeKey] : null;
-
-        const actionTypeControl = this.fb.control(actionData?.actionType ?? WorkflowStepActionType.workflowStep, {
-            nonNullable: true,
-            validators: [Validators.required],
-        });
-
-        const stepControl = this.fb.control<string | null>(actionData?.step ?? null);
-        const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
-        const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
-
-        // Dynamic Validation: Listen for changes in actionType
-        actionTypeControl.valueChanges.subscribe((value) => {
-            if (value === WorkflowStepActionType.workflowStep) {
-                stepControl.setValidators([Validators.required, Validators.minLength(1)]);
-                triggerControl.clearValidators();
-                inputValueControl.clearValidators();
-            } else if (value === WorkflowStepActionType.reservedAction) {
-                stepControl.clearValidators();
-                triggerControl.setValidators([Validators.required]);
-                inputValueControl.setValidators([Validators.required]);
-            } else {
-                stepControl.clearValidators();
-                triggerControl.clearValidators();
-                inputValueControl.clearValidators();
-            }
-
-            // Update form validity state
-            stepControl.updateValueAndValidity();
-            triggerControl.updateValueAndValidity();
-            inputValueControl.updateValueAndValidity();
-        });
-
-        return this.fb.group<IActionHandlerForm>({
-            actionType: actionTypeControl,
-            step: stepControl,
-            trigger: triggerControl,
-            inputValue: inputValueControl,
-        });
-    }
-    get steps(): FormArray<FormGroup<IWorkflowStepForm>> {
-        return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
-    }
-    onSubmit() {
-
-    }
     collectAllErrors() {
         return collectAllErrors(this.workflow_fg);
-    }
-    addStep(): void {
-        this.steps.push(this.createStepFormGroup());
-        this.trackStepNames();
-    }
-    removeStep(index: number): void {
-        if (this.steps.length > 1) {
-            this.steps.removeAt(index);
-            this.trackStepNames();
-        }
     }
 }
 function collectAllErrors(control: AbstractControl, path: string = ''): Record<string, any> {
@@ -773,4 +815,33 @@ function collectAllErrors(control: AbstractControl, path: string = ''): Record<s
         }
     }
     return errors;
+}
+function listAllValidatorsRecursive(control: AbstractControl, path: string = ''): void {
+    if (control instanceof FormGroup) {
+        // If it's a FormGroup, loop through its controls
+        Object.keys(control.controls).forEach((key) => {
+            const childControl = control.get(key);
+            const fullPath = path ? `${path}.${key}` : key;
+            listAllValidatorsRecursive(childControl!, fullPath);
+        });
+    } else if (control instanceof FormArray) {
+        // If it's a FormArray, loop through its controls
+        control.controls.forEach((childControl, index) => {
+            const fullPath = `${path}[${index}]`;
+            listAllValidatorsRecursive(childControl, fullPath);
+        });
+    } else {
+        // If it's a FormControl, list its validators
+        console.log(`Field: ${path}, Validators: ${getValidatorNames(control)}`);
+    }
+}
+
+// Function to get validator names from a FormControl
+function getValidatorNames(control: AbstractControl): string[] {
+    if (!control.validator) {
+        return []; // No validators applied
+    }
+
+    const validatorFn = control.validator({} as AbstractControl);
+    return Object.keys(validatorFn || {});
 }
