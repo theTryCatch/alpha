@@ -723,7 +723,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
 
         const stepControlValidators = [
             Validators.required,
-            valueInArrayValidator(this.stepNames)
+            valueInArrayValidator(this.stepNames, step?.name)
         ];
 
         const stepControl = this.fb.control<string | null>(

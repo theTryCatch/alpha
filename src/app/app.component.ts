@@ -59,7 +59,7 @@ export class AppComponent {
         },
         "onUnsuccessSequential": {
           "actionType": WorkflowStepActionType.workflowStep,
-          "step": "CheckTeamsProcessRunningV1",
+          "step": "GetTeamsFootprintV2",
         },
         "onError": {
           "actionType": WorkflowStepActionType.reservedAction,
