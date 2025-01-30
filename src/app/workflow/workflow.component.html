@@ -1,0 +1,608 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="workflow_fg" class="flex flex-col gap-2">
+    <!--region: Name -->
+    <label class="label">Name</label>
+    <input type="text" placeholder="Name of the workflow" class="input input-bordered w-full" formControlName="name"/>
+    <div *ngIf="workflow_fg.controls['name'].invalid && (workflow_fg.controls['name'].dirty || workflow_fg.controls['name'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['required']">Workflow name is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['minlength']">Workflow name should have at least {{workflow_fg.controls['name'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['name'].errors?.['maxlength']">Workflow name can have maximum of {{workflow_fg.controls['name'].errors?.['maxlength'].requiredLength}} characters.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Description -->
+    <label class="label">Description</label>
+    <textarea class="textarea textarea-bordered w-full" placeholder="Workflow description" formControlName="description"></textarea>
+    <div *ngIf="workflow_fg.controls['description'].invalid && (workflow_fg.controls['description'].dirty || workflow_fg.controls['description'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['required']">Workflow description is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['minlength']">Workflow description should have at least {{workflow_fg.controls['description'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['description'].errors?.['maxlength']">Workflow description can have maximum of {{workflow_fg.controls['description'].errors?.['maxlength'].requiredLength}} characters.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Workflow Owning Group -->
+    <label class="label">Workflow Owning Group</label>
+    <input type="text" placeholder="Workflow owning group" class="input input-bordered w-full" formControlName="workflowOwningGroup"/>
+    <div *ngIf="workflow_fg.controls['workflowOwningGroup'].invalid && (workflow_fg.controls['workflowOwningGroup'].dirty || workflow_fg.controls['workflowOwningGroup'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['required']">Workflow owning group is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['minlength']">Workflow owning group should have at least {{workflow_fg.controls['workflowOwningGroup'].errors?.['minlength'].requiredLength}} characters.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Email Address -->
+    <label class="label">Email Address</label>
+    <input type="text" placeholder="Email Address" class="input input-bordered w-full" formControlName="emailAddress"/>
+    <div *ngIf="workflow_fg.controls['emailAddress'].invalid && (workflow_fg.controls['emailAddress'].dirty || workflow_fg.controls['emailAddress'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['emailAddress'].errors?.['required']">Workflow owner's email address is required.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['emailAddress'].errors?.['pattern']">Only ms.com or morganstanley.com domain email address is allowed.</div>
+    </div>
+    <!-- #endregion -->
+    
+    <!-- #region: Globals -->
+    <label class="label">Globals</label>
+    <textarea #globalsTextarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="globals" (input)="adjustGlobalsHeight()"></textarea>
+    <div *ngIf="workflow_fg.controls['globals'].invalid && (workflow_fg.controls['globals'].dirty || workflow_fg.controls['globals'].touched)">
+        <div class="text-error" *ngIf="workflow_fg.controls['globals'].errors?.['invalidJson']">Invalid json format.</div>
+    </div>
+    <!-- #endregion -->
+
+    <!-- #region: Steps -->
+     <div class="collapse collapse-arrow border textarea-bordered">
+        <input type="checkbox" class="peer" checked/>
+        <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content join items-center gap-4" >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="workflow_fg.get('steps')?.invalid">
+                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+            </svg>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! workflow_fg.get('steps')?.invalid">
+                <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+            </svg>
+            <span>Steps - {{steps.controls.length}}</span>
+        </div>
+        <div class="collapse-content overflow-auto">
+            <div formArrayName="steps">
+                <ng-container *ngFor="let step of steps.controls; let i = index" [formGroupName]="i">
+                    <div class="flex flex-col overflow-auto">
+                        <div class="collapse border textarea-bordered collapse-arrow">
+                            <input type="checkbox" class="peer" title="step{{i}}" checked/>
+                            <div class="collapse-title text-sm font-semibold bg-base-200 ">
+                                <button class="btn btn-square btn-xs" *ngIf="step?.invalid" [ngClass]="{'bg-error': step?.invalid}">{{i+1}}</button>
+                                <button class="btn btn-square btn-xs" *ngIf="! step?.invalid" [ngClass]="{'bg-success': !step?.invalid}">{{i+1}}</button>
+                                {{step.get('name')?.value}}
+                                <div *ngIf="getStepReferences(step.get('name')?.value || null).length > 0" class="hidden sm:block">
+                                    <ul>
+                                        <li *ngFor="let ref of getStepReferences(step.get('name')?.value || null)">
+                                            <div class="flex gap-1 items-center overflow-auto">
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480Zm0 294q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
+                                                {{ ref.step }}
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M400-280v-400l200 200-200 200Z"/></svg>
+                                                {{ ref.path }}
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M400-280v-400l200 200-200 200Z"/></svg>
+                                                {{ ref.key }}
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+
+                            </div>
+                            <div class="collapse-content overflow-auto flex flex-col">
+                                <!-- #region: Name -->
+                                <label class="label">Name</label>
+                                <input type="text" placeholder="Name of the step" class="input input-bordered w-full" formControlName="name"/>
+
+                                <div *ngIf="step?.get('name')?.invalid && (step?.get('name')?.dirty || step?.get('name')?.touched)">
+                                    <div class="text-error" *ngIf="step?.get('name')?.errors?.['required']">Step name is required.</div>
+                                    <div class="text-error" *ngIf="step?.get('name')?.errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
+                                    <div class="text-error" *ngIf="step?.get('name')?.errors?.['minlength']">Step name should have at least {{step?.get('name')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                    <div class="text-error" *ngIf="step?.get('name')?.errors?.['maxlength']">Step name can have a maximum of {{step?.get('name')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                                </div>
+
+                                <!-- #endregion -->
+
+                                <!-- #region: Description -->
+
+                                <label class="label">Description</label>
+
+                                <textarea class="textarea textarea-bordered w-full" placeholder="Step description" formControlName="description"></textarea>
+
+                                <div *ngIf="step.get('description')?.invalid && (step.get('description')?.dirty || step.get('description')?.touched)">
+                                    <div class="text-error" *ngIf="step.get('description')?.errors?.['required']">Step description is required.</div>
+                                    <div class="text-error" *ngIf="step.get('description')?.errors?.['minlength']">Step description should have at least {{step.get('description')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                    <div class="text-error" *ngIf="step.get('description')?.errors?.['maxlength']">Step description can have a maximum of {{step.get('description')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                                </div>
+
+                                <!-- #endregion -->
+
+                                <!-- #region: ExecutionType -->
+
+                                <label class="label">Execution Type</label>
+                                <select class="select select-bordered w-full" formControlName="executionType">
+                                    <option disabled selected>Select Execution Type</option>
+                                    <option *ngFor="let type of executionTypes" [value]="type">{{type}}</option>
+                                </select>
+
+                                <!-- #endregion -->
+
+                                <!-- #region: OutputVariable -->
+
+                                <label class="label">Output Variable</label>
+
+                                <input type="text" placeholder="Output variable" class="input input-bordered w-full" formControlName="outputVariable"/>
+
+                                <div *ngIf="step.get('outputVariable')?.invalid && (step.get('outputVariable')?.dirty || step.get('outputVariable')?.touched)">
+                                    <div class="text-error" *ngIf="step.get('outputVariable')?.errors?.['required']">Output variable is required.</div>
+                                    <div class="text-error" *ngIf="step.get('outputVariable')?.errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
+                                </div>
+
+                                <!-- #endregion -->
+
+                                <!-- #region SuccessCriteria -->
+                                <label class="label">Success Criteria</label>
+                                <textarea class="textarea textarea-bordered w-full" placeholder="success criteria" formControlName="successCriteria"></textarea>
+                                <div class="text-error" *ngIf="step.get('successCriteria')?.invalid && (step.get('successCriteria')?.dirty || step.get('successCriteria')?.touched)">
+                                    success criteria is required.
+                                </div>
+                                <!-- #endregion -->
+
+                                <!-- #region Timeout -->
+                                <label class="label">Timeout</label>
+                                <input type="number" placeholder="Timeout" class="input input-bordered w-full" formControlName="timeout"/>
+                                <div class="text-error" *ngIf="step.get('timeout')?.invalid && (step.get('timeout')?.dirty || step.get('timeout')?.touched)">
+                                    <div *ngIf="step.get('timeout')?.errors?.['required']">Timeout is required.</div>
+                                    <div *ngIf="step.get('timeout')?.errors?.['min']">Minimum timeout should be {{step.get('timeout')?.errors?.['min'].min}} or higher.</div>
+                                </div>
+                                <!-- #endregion -->
+
+                                <!-- #region Environment -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="environment">
+                                    <input type="checkbox" class="peer" title="environment" checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('environment')?.invalid}">
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('environment')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('environment')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                        Environment
+                                    </div>
+
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region CommandType -->
+                                        <label class="label">Command Type</label>
+                                        <select class="select select-bordered w-full" formControlName="commandType">
+                                            <option disabled selected>Select Command Type</option>
+                                            <option *ngFor="let type of commandTypes" [value]="type">{{type}}</option>
+                                        </select>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Runtime -->
+                                        <label class="label">Runtime</label>
+                                        <select class="select select-bordered w-full" formControlName="runtime">
+                                            <option disabled selected>Select Runtime</option>
+                                            <option *ngFor="let runtime of runtimeTypes" [value]="runtime">{{runtime}}</option>
+                                        </select>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Command -->
+                                        <label class="label">Command</label>
+                                        <input type="text" placeholder="Command" class="input input-bordered w-full" formControlName="command"/>
+                                        <div class="text-error" *ngIf="step.get('environment')?.get('command')?.invalid && (step.get('environment')?.get('command')?.dirty || step.get('environment')?.get('command')?.touched)">
+                                            <div *ngIf="step.get('environment')?.get('command')?.errors?.['required']">Command is required.</div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Inputparams -->
+                                        <label class="label">Input Params</label>
+                                        <textarea class="textarea textarea-bordered w-full" placeholder="Input parameters" formControlName="inputparams"></textarea>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Outputparams -->
+                                        <label class="label">Output Params</label>
+                                        <textarea #inputParams class="textarea textarea-bordered w-full" placeholder="Output parameters" formControlName="outputparams"></textarea>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+                            
+                                <!-- #region: OnSuccessSequential -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onSuccessSequential">
+                                    <input type="checkbox" class="peer" title="OnSuccessSequential"  checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onSuccessSequential')?.invalid}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onSuccessSequential')?.invalid">
+                                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onSuccessSequential')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                        On Success Sequential
+                                    </div>
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region ActionType -->
+                                        <label class="label">Action Type</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                            <option disabled selected>Select Action Type</option>
+                                            <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('actionType')?.errors?.['required']">
+                                                Action type is required.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                            <label class="label">Step</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                                <option disabled selected>Select a step</option>
+                                                <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
+                                                    {{ item }}
+                                                </option>
+
+                                            </select>
+                                            <div *ngIf="step.get('onSuccessSequential')?.get('step')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('step')?.errors?.['required']">
+                                                    Step is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onSuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                            <label class="label">Trigger</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                                <option disabled selected>Select Trigger</option>
+                                                <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                            </select>
+                                            <div *ngIf="step.get('onSuccessSequential')?.get('trigger')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('trigger')?.errors?.['required']">
+                                                    Trigger is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onSuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                            
+                                            <label class="label">Input Value</label>
+                                            <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                            <div *ngIf="step.get('onSuccessSequential')?.get('inputValue')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                                    Input value is required.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+                                
+                                <!-- #region onUnsuccessSequential -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onUnsuccessSequential">
+                                    <input type="checkbox" class="peer" title="onUnsuccessSequential"  checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onUnsuccessSequential')?.invalid}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onUnsuccessSequential')?.invalid">
+                                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onUnsuccessSequential')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                            On Unsuccess Sequential
+                                    </div>
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region ActionType -->
+                                        <label class="label">Action Type</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                            <option disabled selected>Select Action Type</option>
+                                            <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.errors?.['required']">
+                                                Action type is required.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                        <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                            <label class="label">Step</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                                <option disabled selected>Select Step</option>
+                                                <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
+                                                    {{ item }}
+                                                </option>
+                                            </select>
+                                            <div *ngIf="step.get('onUnsuccessSequential')?.get('step')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('step')?.errors?.['required']">
+                                                    Step is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onUnsuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                            <label class="label">Trigger</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                                <option disabled selected>Select Trigger</option>
+                                                <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                            </select>
+                                            <div *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['required']">
+                                                    Trigger is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onUnsuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="label">Input Value</label>
+                                                <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                                <div *ngIf="step.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
+                                                    <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                                        Input value is required.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+                            
+                                <!-- #region onError -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onError">
+                                    <input type="checkbox" class="peer" title="onError"  checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onError')?.invalid}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onError')?.invalid">
+                                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onError')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                            On Error
+                                    </div>
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region ActionType -->
+                                        <label class="label">Action Type</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                            <option disabled selected>Select Action Type</option>
+                                            <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="step.get('onError')?.get('actionType')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('actionType')?.errors?.['required']">
+                                                Action type is required.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                        <div *ngIf="step.get('onError')?.get('actionType')?.value === workflowStepActionType">
+                                            <label class="label">Step</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                                <option disabled selected>Select Step</option>
+                                                <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
+                                                    {{ item }}
+                                                </option>
+                                            </select>
+                                            <div *ngIf="step.get('onError')?.get('step')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onError')?.get('step')?.errors?.['required']">
+                                                    Step is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onError')?.get('step')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onError')?.get('step')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onError')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div *ngIf="step.get('onError')?.get('actionType')?.value === reservedAction_ActionType">
+                                            <label class="label">Trigger</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                                <option disabled selected>Select Trigger</option>
+                                                <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                            </select>
+                                            <div *ngIf="step.get('onError')?.get('trigger')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onError')?.get('trigger')?.errors?.['required']">
+                                                    Trigger is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onError')?.get('trigger')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+
+                                            <label class="label">Input Value</label>
+                                            <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                            <div *ngIf="step.get('onError')?.get('inputValue')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onError')?.get('inputValue')?.errors?.['required']">
+                                                    Input value is required.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+                            
+                                <!-- #region onTimeout -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onTimeout">
+                                    <input type="checkbox" class="peer" title="onTimeout"  checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onTimeout')?.invalid}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onTimeout')?.invalid">
+                                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onTimeout')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                            On Timeout
+                                    </div>
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region ActionType -->
+                                        <label class="label">Action Type</label>
+                                        <select class="select select-bordered w-full" title="Select an option" formControlName="actionType">
+                                            <option disabled selected>Select Action Type</option>
+                                            <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
+                                        </select>
+                                        <div *ngIf="step.get('onTimeout')?.get('actionType')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('actionType')?.errors?.['required']">
+                                                Action type is required.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
+                                        <div *ngIf="step.get('onTimeout')?.get('actionType')?.value === workflowStepActionType">
+                                            <label class="label">Step</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="step">
+                                                <option disabled selected>Select Step</option>
+                                                <option *ngFor="let item of (getFilteredStepNames(step.get('name')?.value || '') | async)" [value]="item">
+                                                    {{ item }}
+                                                </option>
+                                            </select>
+                                            <div *ngIf="step.get('onTimeout')?.get('step')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onTimeout')?.get('step')?.errors?.['required']">
+                                                    Step is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onTimeout')?.get('step')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div *ngIf="step.get('onTimeout')?.get('actionType')?.value === reservedAction_ActionType">
+                                            <label class="label">Trigger</label>
+                                            <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
+                                                <option disabled selected>Select Trigger</option>
+                                                <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
+                                            </select>
+                                            <div *ngIf="step.get('onTimeout')?.get('trigger')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onTimeout')?.get('trigger')?.errors?.['required']">
+                                                    Trigger is required.
+                                                </div>
+                                                <div class="text-error" *ngIf="step.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                    Value '{{step.get('onTimeout')?.get('trigger')?.value}}' not allowed. 
+                                                    Allowed values are {{step.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <label class="label">Input Value</label>
+                                        <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                        <div *ngIf="step.get('onTimeout')?.get('inputValue')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('inputValue')?.errors?.['required']">
+                                                Input value is required.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+
+                                <!-- #region versionRange -->
+                                <div class="collapse collapse-arrow border textarea-bordered" formGroupName="versionRange">
+                                    <input type="checkbox" class="peer" title="versionRange"  checked/>
+                                    <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('versionRange')?.invalid}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('versionRange')?.invalid">
+                                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                        </svg>
+                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('versionRange')?.invalid">
+                                            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                        </svg>
+                                            On Timeout
+                                    </div>
+                                    <div class="collapse-content overflow-auto">
+                                        <!-- #region Lowest Version -->
+                                        <label class="label">Lowest Version</label>
+                                        <input type="text" placeholder="Lowest Version" class="input input-bordered w-full" formControlName="lowestVersion"/>
+                                        <div *ngIf="step.get('versionRange')?.get('lowestVersion')?.invalid && 
+                                                    (step.get('versionRange')?.get('lowestVersion')?.dirty || 
+                                                    step.get('versionRange')?.get('lowestVersion')?.touched)">
+                                            <div class="text-error" *ngIf="step.get('versionRange')?.get('lowestVersion')?.errors?.['required']">
+                                                Lowest Version is mandatory.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+
+                                        <!-- #region Highest Version -->
+                                        <label class="label">Highest Version</label>
+                                        <input type="text" placeholder="Highest Version" class="input input-bordered w-full" formControlName="highestVersion"/>
+                                        <div *ngIf="step.get('versionRange')?.get('highestVersion')?.invalid && 
+                                                    (step.get('versionRange')?.get('highestVersion')?.dirty || 
+                                                    step.get('versionRange')?.get('highestVersion')?.touched)">
+                                            <div class="text-error" *ngIf="step.get('versionRange')?.get('highestVersion')?.errors?.['required']">
+                                                Highest Version is mandatory.
+                                            </div>
+                                        </div>
+                                        <!-- #endregion -->
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+
+                                <!-- #region Wiki link -->
+                                <label class="label">Wiki link</label>
+                                <input type="text" placeholder="Wiki link" class="input input-bordered w-full" formControlName="wikiLink"/>
+                                <div *ngIf="step.get('wikiLink')?.invalid && 
+                                            (step.get('wikiLink')?.dirty || 
+                                            step.get('wikiLink')?.touched)">
+                                    <div class="text-error" *ngIf="step.get('wikiLink')?.errors?.['required']">
+                                        Wiki link is required.
+                                    </div>
+                                    <div class="text-error" *ngIf="step.get('wikiLink')?.errors?.['pattern']">
+                                        Only valid internal URLs with the domain ms.com or morganstanley.com is allowed.
+                                    </div>
+                                </div>
+                                <!-- #endregion -->
+
+                                <button class="btn btn-error mt-2" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+            <!--#region Step Actions -->
+            <div class="flex justify-between p-2">
+                <button class="btn btn-primary ml-auto" (click)="addStep()">
+                    Add Step
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-secondary-content"><path d="M200-200v-160 4-4 160Zm0 80q-33 0-56.5-23.5T120-200v-160q0-33 23.5-56.5T200-440h560q33 0 56.5 23.5T840-360H200v160h400v80H200Zm0-400q-33 0-56.5-23.5T120-600v-160q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v160q0 33-23.5 56.5T760-520H200Zm0-80h560v-160H200v160Zm0 0v-160 160ZM760-40v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
+                </button>
+            </div>
+            <div class="flex text-error" *ngIf="workflow_fg.controls['steps'].invalid && (workflow_fg.controls['steps'].dirty || workflow_fg.controls['steps'].touched)">
+                <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength === 1">
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']" class="ml-auto">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} step is required.</div>
+                </ng-container>
+                <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength > 1">
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']" class="ml-auto">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} steps are required.</div>
+                </ng-container>
+            </div>
+            <!-- #endregion -->
+        </div>
+     </div>
+    <!-- #endregion -->
+    
+    <button type="submit" class="btn btn-primary ml-auto">
+        Submit
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="workflow_fg?.invalid">
+            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+        </svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! workflow_fg?.invalid">
+            <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+        </svg>
+    </button>
+</form>

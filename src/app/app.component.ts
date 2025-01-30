@@ -12,11 +12,11 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
   standalone: true,
   template: `
     <div class="container mx-auto p-4">
-      <workflow />
-      <hr>
+      <!-- <workflow />
+      <hr> -->
       <workflow [workflow]="sampleJsonFull" />
-      <hr>
-      <workflow [workflow]="sampleJsonPartial" />
+      <!-- <hr>
+      <workflow [workflow]="sampleJsonPartial" /> -->
     </div>
   `,
   imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent, FormsModule, RouterModule, WorkflowComponent],
