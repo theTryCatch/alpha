@@ -13,13 +13,16 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
   template: `
     <div class="container mx-auto p-4">
       <workflow />
-      <!-- <workflow [workflow]="sampleJson" /> -->
+      <hr>
+      <workflow [workflow]="sampleJsonFull" />
+      <hr>
+      <workflow [workflow]="sampleJsonPartial" />
     </div>
   `,
   imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent, FormsModule, RouterModule, WorkflowComponent],
 })
 export class AppComponent {
-  sampleJson: IWorkflowManifest = {
+  sampleJsonFull: IWorkflowManifest = {
     "name": "ClearTeamsCache",
     "description": "A workflow to clear the Microsoft Teams client cache in multiple steps.",
     "workflowOwningGroup": "ITSupport",
@@ -35,13 +38,7 @@ export class AppComponent {
       "maxRetryAttempts": 2,
       "retryDelaySeconds": 5
     },
-    "steps": []
-  }
-}
-
-/* 
-
-
+    "steps": [
       {
         "name": "GetTeamsFootprintV2",
         "description": "Get the V2 MS Teams footprint from registry.",
@@ -156,6 +153,24 @@ export class AppComponent {
           "highestVersion": "3.0.0"
         }
       }
-    
-
- */
+    ]
+  }
+  sampleJsonPartial: IWorkflowManifest = {
+    "name": "ClearTeamsCache",
+    "description": "A workflow to clear the Microsoft Teams client cache in multiple steps.",
+    "workflowOwningGroup": "ITSupport",
+    "emailAddress": "prodmgtauto@ms.com",
+    "globals": {
+      "username": "$username",
+      "teamsRegPath": "HKLM:\\SOFTWARE\\Morgan Stanley\\AppFootprints",
+      "teamsV2CachePath": "C:\\Users\\$username\\AppData\\Local\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams",
+      "teamsV2ProcessName": "ms-teams",
+      "teamsV1ProcessName": "teams",
+      "teamsV1CachePath": "C:\\Users\\$username\\AppData\\Microsoft\\Teams",
+      "teamsV1ProcessPath": "C:\\Users\\$username\\AppData\\Local\\Microsoft\\Teams\\current\\Teams.exe",
+      "maxRetryAttempts": 2,
+      "retryDelaySeconds": 5
+    },
+    "steps": []
+  }
+}
