@@ -725,46 +725,32 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         step?: IWorkflowStep
     ): FormGroup<IActionHandlerForm> {
         const actionData = step ? step[actionTypeKey] : null;
-
+    
         const actionTypeControl = this.fb.control(actionData?.actionType ?? WorkflowStepActionType.workflowStep, {
             nonNullable: true,
             validators: [Validators.required],
         });
-
-        const stepControlValidators = [
-            Validators.required,
-            valueInArrayValidator(this.stepNames, step?.name)
-        ];
-
+    
         const stepControl = this.fb.control<string | null>(
-            actionData?.step ?? null,
-            actionData?.actionType === WorkflowStepActionType.workflowStep ? stepControlValidators : []
+            actionData?.step ?? null
         );
-
-
+    
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
-
+    
+        // ✅ Apply Correct Validation Rules Immediately
+        this.applyActionTypeValidation(
+            actionTypeControl.value,
+            stepControl,
+            triggerControl,
+            inputValueControl,
+            step?.name // Pass the step's own name to exclude it from the allowed values
+        );
+    
         actionTypeControl.valueChanges.subscribe((value) => {
-            if (value === WorkflowStepActionType.workflowStep) {
-                stepControl.setValidators([Validators.required]);
-                triggerControl.clearValidators();
-                inputValueControl.clearValidators();
-            } else if (value === WorkflowStepActionType.reservedAction) {
-                stepControl.clearValidators();
-                triggerControl.setValidators([Validators.required]);
-                inputValueControl.setValidators([Validators.required]);
-            } else {
-                stepControl.clearValidators();
-                triggerControl.clearValidators();
-                inputValueControl.clearValidators();
-            }
-
-            stepControl.updateValueAndValidity();
-            triggerControl.updateValueAndValidity();
-            inputValueControl.updateValueAndValidity();
+            this.applyActionTypeValidation(value, stepControl, triggerControl, inputValueControl, step?.name);
         });
-
+    
         return this.fb.group<IActionHandlerForm>({
             actionType: actionTypeControl,
             step: stepControl,
@@ -772,6 +758,37 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             inputValue: inputValueControl,
         });
     }
+    private applyActionTypeValidation(
+        actionType: WorkflowStepActionType,
+        stepControl: FormControl<string | null>,
+        triggerControl: FormControl<string | null>,
+        inputValueControl: FormControl<string | null>,
+        currentStepName?: string // New: Pass current step name to exclude it from allowed values
+    ): void {
+        if (actionType === WorkflowStepActionType.workflowStep) {
+            // ✅ Step must be in the list of step names excluding itself
+            stepControl.setValidators([
+                Validators.required,
+                valueInArrayValidator(this.stepNames, currentStepName) // Ensures value is in the list excluding itself
+            ]);
+            triggerControl.clearValidators();
+            inputValueControl.clearValidators();
+        } else if (actionType === WorkflowStepActionType.reservedAction) {
+            stepControl.clearValidators();
+            triggerControl.setValidators([Validators.required]);
+            inputValueControl.setValidators([Validators.required]);
+        } else {
+            stepControl.clearValidators();
+            triggerControl.clearValidators();
+            inputValueControl.clearValidators();
+        }
+    
+        stepControl.updateValueAndValidity();
+        triggerControl.updateValueAndValidity();
+        inputValueControl.updateValueAndValidity();
+    }
+    
+    
     get steps(): FormArray<FormGroup<IWorkflowStepForm>> {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
