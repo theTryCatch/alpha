@@ -582,7 +582,7 @@
             </div>
             <!--#region Step Actions -->
             <div class="flex justify-between p-2">
-                <button class="btn btn-primary ml-auto" (click)="addStep()">
+                <button class="btn btn-primary ml-auto text-secondary-content" (click)="addStep()">
                     Add Step
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-secondary-content"><path d="M200-200v-160 4-4 160Zm0 80q-33 0-56.5-23.5T120-200v-160q0-33 23.5-56.5T200-440h560q33 0 56.5 23.5T840-360H200v160h400v80H200Zm0-400q-33 0-56.5-23.5T120-600v-160q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v160q0 33-23.5 56.5T760-520H200Zm0-80h560v-160H200v160Zm0 0v-160 160ZM760-40v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
                 </button>
@@ -600,7 +600,7 @@
      </div>
     <!-- #endregion -->
     
-    <button type="submit" class="btn btn-primary ml-auto">
+    <button type="submit" class="btn btn-primary ml-auto text-secondary-content">
         Submit
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="workflow_fg?.invalid">
             <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
