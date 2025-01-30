@@ -595,7 +595,19 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
         </div>
      </div>
     <!-- #endregion -->
-    <button type="submit" class="btn btn-primary ml-auto">Submit</button>
+    
+    <button type="submit" class="btn btn-primary ml-auto">
+        <div class="join gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="workflow_fg?.invalid">
+                <path d="M440-400v-360h80v360h-80Zm0 200v-80h80v80h-80Z"/>
+            </svg>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! workflow_fg?.invalid">
+                <path d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"/>
+            </svg>
+            Submit
+        </div>
+    </button>
 </form>
 
     `,
