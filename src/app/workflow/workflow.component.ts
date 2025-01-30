@@ -535,7 +535,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
         </div>
      </div>
     <!-- #endregion -->
-    <input type="submit" class="btn-primary btn" />
+    <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
     `,
@@ -800,6 +800,11 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
 function collectAllErrors(control: AbstractControl, path: string = ''): Record<string, any> {
     const errors: Record<string, any> = {};
 
+    // Capture errors directly on the control (important for FormArray validation!)
+    if (control.errors) {
+        errors[path] = control.errors;
+    }
+
     if (control instanceof FormGroup) {
         for (const key in control.controls) {
             if (control.controls.hasOwnProperty(key)) {
@@ -808,17 +813,15 @@ function collectAllErrors(control: AbstractControl, path: string = ''): Record<s
             }
         }
     } else if (control instanceof FormArray) {
-        control.controls.forEach((control, index) => {
+        control.controls.forEach((childControl, index) => {
             const arrayPath = path ? `${path}[${index + 1}]` : `${index + 1}`;
-            Object.assign(errors, collectAllErrors(control, arrayPath));
+            Object.assign(errors, collectAllErrors(childControl, arrayPath));
         });
-    } else {
-        if (control.errors) {
-            errors[path] = control.errors
-        }
     }
+
     return errors;
 }
+
 function minArrayLengthValidator(minLength: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
         if (control instanceof FormArray && control.length < minLength) {
