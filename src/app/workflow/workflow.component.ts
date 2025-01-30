@@ -82,9 +82,9 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i" class="flex flex-col">
                     <div class="collapse border textarea-bordered collapse-arrow gap-1">
                         <input type="checkbox" class="peer" title="step{{i}}" checked/>
-                        <div class="collapse-title text-sm font-semibold bg-base-200 p-[0.3rem]">
-                            <button class="btn btn-circle" *ngIf="step?.invalid" [ngClass]="{'bg-error': step?.invalid}">{{i+1}}</button>
-                            <button class="btn btn-circle" *ngIf="! step?.invalid" [ngClass]="{'bg-success': !step?.invalid}">{{i+1}}</button>
+                        <div class="collapse-title text-sm font-semibold bg-base-200 ">
+                            <button class="btn btn-square btn-xs" *ngIf="step?.invalid" [ngClass]="{'bg-error': step?.invalid}">{{i+1}}</button>
+                            <button class="btn btn-square btn-xs" *ngIf="! step?.invalid" [ngClass]="{'bg-success': !step?.invalid}">{{i+1}}</button>
                             {{step.get('name')?.value}}
                             <div *ngIf="getStepReferences(step.get('name')?.value || null).length > 0" class="text-sm font-semibold">
                                 <ul>
