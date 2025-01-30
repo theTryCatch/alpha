@@ -385,13 +385,13 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                                 Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <label class="label">Input Value</label>
-                                    <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.errors?.['required']">
-                                            Input value is required.
+                                        <label class="label">Input Value</label>
+                                        <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
+                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.invalid">
+                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.errors?.['required']">
+                                                Input value is required.
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- #endregion -->
