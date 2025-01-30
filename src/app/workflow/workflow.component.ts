@@ -12,7 +12,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
     standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     template: `
-    <form (ngSubmit)="onSubmit()" [formGroup]="workflow_fg">
+    <form (ngSubmit)="onSubmit()" [formGroup]="workflow_fg" class="flex flex-col gap-2">
     <div> {{collectAllErrors() | json}}</div>
     <div>{{workflow_fg.valid}}</div>
     <div>{{stepNames|async}}</div>
@@ -65,7 +65,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
     <!-- #endregion -->
 
     <!-- #region: Steps -->
-     <div class="collapse collapse-arrow border textarea-bordered ">
+     <div class="collapse collapse-arrow border textarea-bordered">
         <input type="checkbox" class="peer" checked/>
         <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content">
             Steps - {{steps.controls.length}}
@@ -78,7 +78,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                         <div class="collapse-title text-sm font-semibold bg-base-200">
                             Step - {{i+1}} : {{step.get('name')?.value}}
                         </div>
-                        <div class="collapse-content overflow-auto">
+                        <div class="collapse-content overflow-auto flex flex-col">
                             <!-- #region: Name -->
                             <label class="label">Name</label>
                             <input type="text" placeholder="Name of the step" class="input input-bordered w-full" formControlName="name"/>
@@ -148,10 +148,11 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                             <!-- #region Environment -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="environment">
-                                <input type="checkbox" class="peer" title="environment"/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                <input type="checkbox" class="peer" title="environment" checked/>
+                                <div class="collapse-title text-sm font-semibold bg-primary-content" [ngClass]="{'text-error': workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.invalid}">
                                     Environment
                                 </div>
+
                                 <div class="collapse-content overflow-auto">
                                     <!-- #region CommandType -->
                                     <label class="label">Command Type</label>
@@ -192,7 +193,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                         
                             <!-- #region: OnSuccessSequential -->
                              <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onSuccessSequential">
-                                <input type="checkbox" class="peer" title="OnSuccessSequential" />
+                                <input type="checkbox" class="peer" title="OnSuccessSequential"  checked/>
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Success Sequential
                                 </div>
@@ -261,7 +262,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             
                             <!-- #region onUnsuccessSequential -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onUnsuccessSequential">
-                                <input type="checkbox" class="peer" title="onUnsuccessSequential" />
+                                <input type="checkbox" class="peer" title="onUnsuccessSequential"  checked/>
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Unsuccess Sequential
                                 </div>
@@ -329,7 +330,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                         
                             <!-- #region onError -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onError">
-                                <input type="checkbox" class="peer" title="onError" />
+                                <input type="checkbox" class="peer" title="onError"  checked/>
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Error
                                 </div>
@@ -398,7 +399,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                         
                             <!-- #region onTimeout -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onTimeout">
-                                <input type="checkbox" class="peer" title="onTimeout" />
+                                <input type="checkbox" class="peer" title="onTimeout"  checked/>
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Timeout
                                 </div>
@@ -467,7 +468,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                             <!-- #region versionRange -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="versionRange">
-                                <input type="checkbox" class="peer" title="versionRange" />
+                                <input type="checkbox" class="peer" title="versionRange"  checked/>
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     Version Range
                                 </div>
@@ -514,28 +515,28 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             </div>
                             <!-- #endregion -->
 
+                            <button class="btn btn-error mt-2" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
                         </div>
                     </div>
-                    <button class="btn btn-error mt-2 min-w-[10rem]" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
                 </div>
             </div>
             <!--#region Step Actions -->
             <div class="flex justify-between p-2">
-                <button class="btn btn-primary min-w-[10rem]" (click)="addStep()">➕ Add Step</button>
+                <button class="btn btn-primary ml-auto" (click)="addStep()">➕ Add Step</button>
             </div>
-            <div class="text-error" *ngIf="workflow_fg.controls['steps'].invalid && (workflow_fg.controls['steps'].dirty || workflow_fg.controls['steps'].touched)">
+            <div class="flex text-error" *ngIf="workflow_fg.controls['steps'].invalid && (workflow_fg.controls['steps'].dirty || workflow_fg.controls['steps'].touched)">
                 <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength === 1">
-                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} step is required.</div>
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']" class="ml-auto">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} step is required.</div>
                 </ng-container>
                 <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength > 1">
-                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} steps are required.</div>
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']" class="ml-auto">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} steps are required.</div>
                 </ng-container>
             </div>
             <!-- #endregion -->
         </div>
      </div>
     <!-- #endregion -->
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary ml-auto">Submit</button>
 </form>
 
     `,
