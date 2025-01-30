@@ -67,15 +67,29 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
     <!-- #region: Steps -->
      <div class="collapse collapse-arrow border textarea-bordered">
         <input type="checkbox" class="peer" checked/>
-        <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content">
-            Steps - {{steps.controls.length}}
+        <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content join items-center gap-4" >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="workflow_fg.get('steps')?.invalid">
+                <path d="M440-400v-360h80v360h-80Zm0 200v-80h80v80h-80Z"/>
+            </svg>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! workflow_fg.get('steps')?.invalid">
+                <path d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"/>
+            </svg>
+            <span>Steps - {{steps.controls.length}}</span>
         </div>
-        <div class="collapse-content overflow-auto ">
+        <div class="collapse-content overflow-auto">
             <div formArrayName="steps">
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i" class="flex flex-col">
                     <div class="collapse border textarea-bordered collapse-arrow gap-1">
                         <input type="checkbox" class="peer" title="step{{i}}" checked/>
-                        <div class="collapse-title text-sm font-semibold bg-base-200">
+                        <div class="collapse-title text-sm font-semibold bg-base-200 join gap-2 items-center" [ngClass]="{'text-error': step?.invalid}">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step?.invalid">
+                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                            </svg>
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step?.invalid">
+                                <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                            </svg>
                             Step - {{i+1}} : {{step.get('name')?.value}}
                         </div>
                         <div class="collapse-content overflow-auto flex flex-col">
@@ -149,7 +163,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region Environment -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="environment">
                                 <input type="checkbox" class="peer" title="environment" checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content" [ngClass]="{'text-error': workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.invalid}">
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('environment')?.invalid}">
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('environment')?.invalid">
+                                        <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('environment')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
                                     Environment
                                 </div>
 
@@ -194,7 +216,14 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region: OnSuccessSequential -->
                              <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onSuccessSequential">
                                 <input type="checkbox" class="peer" title="OnSuccessSequential"  checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onSuccessSequential')?.invalid}">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onSuccessSequential')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onSuccessSequential')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
                                     On Success Sequential
                                 </div>
                                 <div class="collapse-content overflow-auto">
@@ -263,8 +292,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region onUnsuccessSequential -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onUnsuccessSequential">
                                 <input type="checkbox" class="peer" title="onUnsuccessSequential"  checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
-                                    On Unsuccess Sequential
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onUnsuccessSequential')?.invalid}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onUnsuccessSequential')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onUnsuccessSequential')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
+                                        On Unsuccess Sequential
                                 </div>
                                 <div class="collapse-content overflow-auto">
                                     <!-- #region ActionType -->
@@ -333,8 +369,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region onError -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onError">
                                 <input type="checkbox" class="peer" title="onError"  checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
-                                    On Error
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onError')?.invalid}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onError')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onError')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
+                                        On Error
                                 </div>
                                 <div class="collapse-content overflow-auto">
                                     <!-- #region ActionType -->
@@ -402,8 +445,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region onTimeout -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onTimeout">
                                 <input type="checkbox" class="peer" title="onTimeout"  checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
-                                    On Timeout
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('onTimeout')?.invalid}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('onTimeout')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('onTimeout')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
+                                        On Timeout
                                 </div>
                                 <div class="collapse-content overflow-auto">
                                     <!-- #region ActionType -->
@@ -471,8 +521,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region versionRange -->
                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="versionRange">
                                 <input type="checkbox" class="peer" title="versionRange"  checked/>
-                                <div class="collapse-title text-sm font-semibold bg-primary-content">
-                                    Version Range
+                                <div class="collapse-title text-sm font-semibold bg-primary-content join items-center gap-2" [ngClass]="{'text-error': step.get('versionRange')?.invalid}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step.get('versionRange')?.invalid">
+                                            <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+                                    </svg>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step.get('versionRange')?.invalid">
+                                        <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
+                                    </svg>
+                                        On Timeout
                                 </div>
                                 <div class="collapse-content overflow-auto">
                                     <!-- #region Lowest Version -->
@@ -725,19 +782,19 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         step?: IWorkflowStep
     ): FormGroup<IActionHandlerForm> {
         const actionData = step ? step[actionTypeKey] : null;
-    
+
         const actionTypeControl = this.fb.control(actionData?.actionType ?? WorkflowStepActionType.workflowStep, {
             nonNullable: true,
             validators: [Validators.required],
         });
-    
+
         const stepControl = this.fb.control<string | null>(
             actionData?.step ?? null
         );
-    
+
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
-    
+
         // ✅ Apply Correct Validation Rules Immediately
         this.applyActionTypeValidation(
             actionTypeControl.value,
@@ -746,11 +803,11 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             inputValueControl,
             step?.name // Pass the step's own name to exclude it from the allowed values
         );
-    
+
         actionTypeControl.valueChanges.subscribe((value) => {
             this.applyActionTypeValidation(value, stepControl, triggerControl, inputValueControl, step?.name);
         });
-    
+
         return this.fb.group<IActionHandlerForm>({
             actionType: actionTypeControl,
             step: stepControl,
@@ -782,13 +839,13 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             triggerControl.clearValidators();
             inputValueControl.clearValidators();
         }
-    
+
         stepControl.updateValueAndValidity();
         triggerControl.updateValueAndValidity();
         inputValueControl.updateValueAndValidity();
     }
-    
-    
+
+
     get steps(): FormArray<FormGroup<IWorkflowStepForm>> {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
