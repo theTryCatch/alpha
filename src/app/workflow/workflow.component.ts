@@ -65,14 +65,14 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
     <!-- #endregion -->
 
     <!-- #region: Steps -->
-     <div class="collapse-open collapse-arrow border textarea-bordered">
+     <div class="collapse-open collapse-arrow border textarea-bordered flex flex-col">
         <input type="checkbox" class="peer" />
         <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content">
             Steps - {{steps.controls.length}}
         </div>
         <div class="collapse-content overflow-auto flex flex-col">
             <div formArrayName="steps">
-                <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i">
+                <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i" class="flex flex-col">
                     <div class="collapse-open border textarea-bordered collapse-arrow gap-1">
                         <input type="checkbox" class="peer" title="step{{i}}" />
                         <div class="collapse-title text-sm font-semibold bg-base-200">
@@ -516,12 +516,12 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                         </div>
                     </div>
-                    <button class="btn btn-error mt-2" (click)="removeStep(i)">❌ Remove Step</button>
+                    <button class="btn btn-error mt-2 min-w-[10rem] items-center" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
                 </div>
             </div>
             <!--#region Step Actions -->
             <div class="flex justify-between p-2">
-                <button class="btn btn-primary" (click)="addStep()">+ Add Step</button>
+                <button class="btn btn-primary min-w-[10rem]" (click)="addStep()">➕ Add Step</button>
             </div>
             <div class="text-error" *ngIf="workflow_fg.controls['steps'].invalid && (workflow_fg.controls['steps'].dirty || workflow_fg.controls['steps'].touched)">
                 <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength === 1">
