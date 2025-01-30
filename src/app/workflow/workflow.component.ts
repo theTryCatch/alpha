@@ -65,16 +65,16 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
     <!-- #endregion -->
 
     <!-- #region: Steps -->
-     <div class="collapse-open collapse-arrow border textarea-bordered flex flex-col">
-        <input type="checkbox" class="peer" />
+     <div class="collapse collapse-arrow border textarea-bordered ">
+        <input type="checkbox" class="peer" checked/>
         <div class="collapse-title text-sm font-semibold bg-secondary text-secondary-content">
             Steps - {{steps.controls.length}}
         </div>
-        <div class="collapse-content overflow-auto flex flex-col">
+        <div class="collapse-content overflow-auto ">
             <div formArrayName="steps">
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i" class="flex flex-col">
-                    <div class="collapse-open border textarea-bordered collapse-arrow gap-1">
-                        <input type="checkbox" class="peer" title="step{{i}}" />
+                    <div class="collapse border textarea-bordered collapse-arrow gap-1">
+                        <input type="checkbox" class="peer" title="step{{i}}" checked/>
                         <div class="collapse-title text-sm font-semibold bg-base-200">
                             Step - {{i+1}} : {{step.get('name')?.value}}
                         </div>
@@ -191,7 +191,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #endregion -->
                         
                             <!-- #region: OnSuccessSequential -->
-                             <div class="collapse-open collapse-arrow-border textarea-bordered" formGroupName="onSuccessSequential">
+                             <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onSuccessSequential">
                                 <input type="checkbox" class="peer" title="OnSuccessSequential" />
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Success Sequential
@@ -328,7 +328,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #endregion -->
                         
                             <!-- #region onError -->
-                            <div class="collapse-open collapse-arrow border textarea-bordered" formGroupName="onError">
+                            <div class="collapse collapse-arrow border textarea-bordered" formGroupName="onError">
                                 <input type="checkbox" class="peer" title="onError" />
                                 <div class="collapse-title text-sm font-semibold bg-primary-content">
                                     On Error
@@ -516,7 +516,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                         </div>
                     </div>
-                    <button class="btn btn-error mt-2 min-w-[10rem] items-center" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
+                    <button class="btn btn-error mt-2 min-w-[10rem]" (click)="removeStep(i)">❌ Remove - {{ steps.controls[i].get('name')?.value || 'Unnamed step' }}</button>
                 </div>
             </div>
             <!--#region Step Actions -->
@@ -774,11 +774,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
     onSubmit() {
-        
-        console.log("sagar",this.workflow_fg);
-        
         if (this.workflow_fg.invalid) {
-            console.log('Form is invalid:', this.collectAllErrors());
             this.workflow_fg.markAllAsTouched();
             this.workflow_fg.updateValueAndValidity();
             return;
