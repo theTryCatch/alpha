@@ -73,7 +73,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
             </svg>
             
             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! workflow_fg.get('steps')?.invalid">
-                <path d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"/>
+                <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
             </svg>
             <span>Steps - {{steps.controls.length}}</span>
         </div>
@@ -82,15 +82,24 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i" class="flex flex-col">
                     <div class="collapse border textarea-bordered collapse-arrow gap-1">
                         <input type="checkbox" class="peer" title="step{{i}}" checked/>
-                        <div class="collapse-title text-sm font-semibold bg-base-200 join gap-2 items-center" [ngClass]="{'text-error': step?.invalid}">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-error" *ngIf="step?.invalid">
-                                <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
-                            </svg>
-                            
-                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-success" *ngIf="! step?.invalid">
-                                <path d="m344-60-76-128-144-32 14-148-98-112 98-112-14-148 144-32 76-128 136 58 136-58 76 128 144 32-14 148 98 112-98 112 14 148-144 32-76 128-136-58-136 58Zm34-102 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Zm-42 142 226-226-56-58-170 170-86-84-56 56 142 142Z"/>
-                            </svg>
-                            Step - {{i+1}} : {{step.get('name')?.value}}
+                        <div class="collapse-title text-sm font-semibold bg-base-200 p-[0.3rem]">
+                            <button class="btn btn-circle" *ngIf="step?.invalid" [ngClass]="{'bg-error': step?.invalid}">{{i+1}}</button>
+                            <button class="btn btn-circle" *ngIf="! step?.invalid" [ngClass]="{'bg-success': !step?.invalid}">{{i+1}}</button>
+                            {{step.get('name')?.value}}
+                            <div *ngIf="getStepReferences(step.get('name')?.value || null).length > 0" class="text-sm font-semibold">
+                                <ul>
+                                    <li *ngFor="let ref of getStepReferences(step.get('name')?.value || null)" class="flex gap-1 items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480Zm0 294q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
+                                        {{ ref.step }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M400-280v-400l200 200-200 200Z"/></svg>
+                                        {{ ref.path }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M400-280v-400l200 200-200 200Z"/></svg>
+                                        {{ ref.key }}
+                                    </li>
+                                </ul>
+                            </div>
+
+
                         </div>
                         <div class="collapse-content overflow-auto flex flex-col">
                             <!-- #region: Name -->
@@ -636,6 +645,29 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
     ngAfterViewInit(): void {
         this.adjustGlobalsHeight();
     }
+    getStepReferences(stepName: string | null | undefined): { step: string, path: string, key: string }[] {
+        if (!stepName) return [];
+
+        const references: { step: string, path: string, key: string }[] = [];
+        this.steps.controls.forEach((step, index) => {
+            const stepDisplayName: { step: string, path: string, key: string } = { step: `Step ${index + 1}`, path: `${step.get('name')?.value || 'Unnamed Step'}`, key: "" };
+            const handlers = ['onSuccessSequential', 'onUnsuccessSequential', 'onError', 'onTimeout'];
+
+            handlers.forEach(handlerKey => {
+                const actionHandlerGroup = step.get(handlerKey) as FormGroup<IActionHandlerForm>;
+                if (actionHandlerGroup) {
+                    const stepControl = actionHandlerGroup.get('step');
+                    if (stepControl && stepControl.value === stepName) {
+                        stepDisplayName.key = handlerKey;
+                        references.push(stepDisplayName);
+                    }
+                }
+            });
+        });
+
+        return references;
+    }
+
     adjustGlobalsHeight(): void {
         if (this.globalsTextarea) {
             this.globalsTextarea.nativeElement.style.height = 'auto';
