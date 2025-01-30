@@ -4,7 +4,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsM
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { jsonValidator } from '../workflow-library/validators/json.validator';
 import { valueInArrayValidator } from '../workflow-library/validators/valueInArray.validator';
-import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType, IWorkflowManifestFormGroup, IStringOfAny, IWorkflowStepForm, IWorkflowStep, IEnvironmentForm, IVersionRangeForm, IActionHandlerForm } from '../workflow-library/interfaces';
+import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType, IWorkflowManifestFormGroup, IStringOfAny, IWorkflowStepForm, IWorkflowStep, IEnvironmentForm, IVersionRangeForm, IActionHandlerForm, WorkflowStepExecutionType } from '../workflow-library/interfaces';
 
 @Component({
     selector: 'workflow',
@@ -70,13 +70,6 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
             Steps - {{steps.controls.length}}
         </div>
         <div class="collapse-content overflow-auto flex flex-col">
-
-            <!--#region Step Actions -->
-            <div class="flex justify-between p-2">
-                <button class="btn btn-primary" (click)="addStep()">+ Add Step</button>
-            </div>
-            <!-- #endregion -->
-
             <div formArrayName="steps">
                 <div *ngFor="let step of steps.controls; let i = index" [formGroupName]="i">
                     <div class="collapse-open border textarea-bordered collapse-arrow gap-1">
@@ -539,6 +532,11 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
                     <button class="btn btn-error mt-2" (click)="removeStep(i)">❌ Remove Step</button>
                 </div>
             </div>
+            <!--#region Step Actions -->
+            <div class="flex justify-between p-2">
+                <button class="btn btn-primary" (click)="addStep()">+ Add Step</button>
+            </div>
+            <!-- #endregion -->
         </div>
      </div>
     <!-- #endregion -->
@@ -639,7 +637,6 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             const names = this.steps.controls.map(step => step.get('name')?.value || '');
             this.stepNames.next(names);
 
-            // 🔴 Force revalidation of all "step" controls when step names change
             this.steps.controls.forEach(stepGroup => {
                 const handlers = ['onSuccessSequential', 'onUnsuccessSequential', 'onError', 'onTimeout'];
                 handlers.forEach(handlerKey => {
@@ -793,10 +790,8 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         this.trackStepNames();
     }
     removeStep(index: number): void {
-        if (this.steps.length > 1) {
-            this.steps.removeAt(index);
-            this.trackStepNames();
-        }
+        this.steps.removeAt(index);
+        this.trackStepNames();
     }
 }
 function collectAllErrors(control: AbstractControl, path: string = ''): Record<string, any> {
