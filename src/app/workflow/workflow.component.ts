@@ -5,6 +5,7 @@ import { BehaviorSubject, map, Observable } from 'rxjs';
 import { jsonValidator } from '../workflow-library/validators/json.validator';
 import { valueInArrayValidator } from '../workflow-library/validators/valueInArray.validator';
 import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType, IWorkflowManifestFormGroup, IStringOfAny, IWorkflowStepForm, IWorkflowStep, IEnvironmentForm, IVersionRangeForm, IActionHandlerForm, WorkflowStepExecutionType } from '../workflow-library/interfaces';
+import { atLeastOneValidStepValidator } from '../workflow-library/validators/atLeastOneValidStepValidator';
 
 @Component({
     selector: 'workflow',
@@ -42,7 +43,7 @@ import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, Wo
     <div *ngIf="workflow_fg.controls['workflowOwningGroup'].invalid && (workflow_fg.controls['workflowOwningGroup'].dirty || workflow_fg.controls['workflowOwningGroup'].touched)">
         <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['required']">Workflow owning group is required.</div>
         <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['minlength']">Workflow owning group should have at least {{workflow_fg.controls['workflowOwningGroup'].errors?.['minlength'].requiredLength}} characters.</div>
-        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['pattern']">Only alphabets, numbers, and underscores are allowed. No spaces are allowed.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['workflowOwningGroup'].errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
     </div>
     <!-- #endregion -->
     
@@ -59,7 +60,7 @@ import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, Wo
     <label class="label">Globals</label>
     <textarea #globalsTextarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="globals" (input)="adjustGlobalsHeight()"></textarea>
     <div *ngIf="workflow_fg.controls['globals'].invalid && (workflow_fg.controls['globals'].dirty || workflow_fg.controls['globals'].touched)">
-        <div class="text-error" *ngIf="workflow_fg.controls['globals'].errors?.['invalidJson']">Invalid json. You should have at least one key specified, and all key name types should be strings.</div>
+        <div class="text-error" *ngIf="workflow_fg.controls['globals'].errors?.['invalidJson']">Invalid json format.</div>
     </div>
     <!-- #endregion -->
 
@@ -178,26 +179,12 @@ import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, Wo
 
                                     <!-- #region Inputparams -->
                                     <label class="label">Input Params</label>
-                                    <textarea class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="inputparams"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('inputparams')?.touched)">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('inputparams')?.errors?.['invalidJson']">
-                                            Invalid json. You should have at least key specified and all key name types should be only string.
-                                        </div>
-                                    </div>
+                                    <textarea class="textarea textarea-bordered w-full" placeholder="Input parameters" formControlName="inputparams"></textarea>
                                     <!-- #endregion -->
 
                                     <!-- #region Outputparams -->
                                     <label class="label">Output Params</label>
-                                    <textarea #inputParams class="textarea textarea-bordered w-full" placeholder="Json string" formControlName="outputparams"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('outputparams')?.touched)">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('outputparams')?.errors?.['invalidJson']">
-                                            Invalid json. You should have at least key specified and all key name types should be only string.
-                                        </div>
-                                    </div>
+                                    <textarea #inputParams class="textarea textarea-bordered w-full" placeholder="Output parameters" formControlName="outputparams"></textarea>
                                     <!-- #endregion -->
                                 </div>
                             </div>
@@ -536,6 +523,14 @@ import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, Wo
             <div class="flex justify-between p-2">
                 <button class="btn btn-primary" (click)="addStep()">+ Add Step</button>
             </div>
+            <div class="text-error" *ngIf="workflow_fg.controls['steps'].invalid && (workflow_fg.controls['steps'].dirty || workflow_fg.controls['steps'].touched)">
+                <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength === 1">
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} step is required.</div>
+                </ng-container>
+                <ng-container *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength > 1">
+                    <div *ngIf="workflow_fg.controls['steps'].errors?.['minArrayLength']">At least {{workflow_fg.controls['steps'].errors?.['minArrayLength']?.requiredLength}} steps are required.</div>
+                </ng-container>
+            </div>
             <!-- #endregion -->
         </div>
      </div>
@@ -614,6 +609,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 validators: [
                     Validators.required,
                     Validators.pattern(/^[a-zA-Z0-9_]+$/),
+                    Validators.minLength(3),
                 ],
             }),
             emailAddress: this.fb.control('', {
@@ -624,11 +620,11 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                     Validators.pattern(/@(ms|morganstanley)\.com$/),
                 ],
             }),
-            globals: this.fb.control<IStringOfAny | null>(null, {
+            globals: this.fb.control<string | null>(null, {
                 nonNullable: true,
                 validators: [jsonValidator],
             }),
-            steps: this.fb.array<FormGroup<IWorkflowStepForm>>([]),
+            steps: this.fb.array<FormGroup<IWorkflowStepForm>>([], { validators: [minArrayLengthValidator(2)] }),
         });
         this.trackStepNames();
     }
@@ -662,8 +658,14 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             description: workflowData.description,
             workflowOwningGroup: workflowData.workflowOwningGroup,
             emailAddress: workflowData.emailAddress,
-            globals: workflowData.globals ?? null,
         });
+
+        if (workflowData.globals) {
+            const formattedGlobals = JSON.stringify(workflowData.globals, null, 2);
+            this.workflow_fg.get('globals')?.setValue(formattedGlobals, { emitEvent: false });
+        } else {
+            this.workflow_fg.get('globals')?.setValue(null, { emitEvent: false });
+        }
 
         const stepsArray = this.workflow_fg.get('steps') as FormArray;
         stepsArray.clear(); // Clear existing steps before adding new ones
@@ -680,18 +682,18 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
 
     private createStepFormGroup(step?: IWorkflowStep): FormGroup<IWorkflowStepForm> {
         const stepGroup = this.fb.group<IWorkflowStepForm>({
-            name: this.fb.control(step?.name ?? '', { nonNullable: true, validators: [Validators.required] }),
-            description: this.fb.control(step?.description ?? '', { nonNullable: true, validators: [Validators.required] }),
+            name: this.fb.control(step?.name ?? '', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)] }),
+            description: this.fb.control(step?.description ?? '', { nonNullable: true, validators: [Validators.required, Validators.minLength(10), Validators.maxLength(500)] }),
             executionType: this.fb.control(step?.executionType ?? WorkflowStepExecutionType.sequential, { nonNullable: true, validators: [Validators.required] }),
-            outputVariable: this.fb.control(step?.outputVariable ?? '', { nonNullable: true, validators: [Validators.required] }),
+            outputVariable: this.fb.control(step?.outputVariable ?? '', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)] }),
             successCriteria: this.fb.control(step?.successCriteria ?? '', { nonNullable: true, validators: [Validators.required] }),
-            timeout: this.fb.control(step?.timeout ?? 30, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+            timeout: this.fb.control(step?.timeout ?? 30, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
             environment: this.fb.group<IEnvironmentForm>({
                 commandType: this.fb.control(step?.environment?.commandType ?? WorkflowStepCommandType.script, { nonNullable: true, validators: [Validators.required] }),
                 runtime: this.fb.control(step?.environment?.runtime ?? WorkflowStepRuntimeType.PowerShell, { nonNullable: true, validators: [Validators.required] }),
                 command: this.fb.control(step?.environment?.command ?? '', { nonNullable: true, validators: [Validators.required] }),
-                inputparams: this.fb.control<string | null>(step?.environment?.inputparams ? JSON.stringify(step.environment.inputparams) : null),
-                outputparams: this.fb.control<string | null>(step?.environment?.outputparams ? JSON.stringify(step.environment.outputparams) : null),
+                inputparams: this.fb.control<string | null>(step?.environment?.inputparams ? step.environment.inputparams : null),
+                outputparams: this.fb.control<string | null>(step?.environment?.outputparams ? step.environment.outputparams : null),
             }),
 
             onSuccessSequential: this.createActionHandlerForm("onSuccessSequential", step),
@@ -703,7 +705,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
                 lowestVersion: this.fb.control(step?.versionRange?.lowestVersion ?? '', { nonNullable: true, validators: [Validators.required] }),
                 highestVersion: this.fb.control(step?.versionRange?.highestVersion ?? '', { nonNullable: true, validators: [Validators.required] }),
             }),
-            wikiLink: this.fb.control(step?.wikiLink ?? '', { nonNullable: true, validators: [Validators.required] }),
+            wikiLink: this.fb.control(step?.wikiLink ?? '', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^(https?:\/\/)?([\w.-]+\.)?(ms\.com|morganstanley\.com)(\/.*)?$/)] }),
         });
 
         stepGroup.get('name')?.valueChanges.subscribe(() => this.trackStepNames());
@@ -772,14 +774,15 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         return this.workflow_fg.get('steps') as FormArray<FormGroup<IWorkflowStepForm>>;
     }
     onSubmit() {
+        
+        console.log("sagar",this.workflow_fg);
+        
         if (this.workflow_fg.invalid) {
             console.log('Form is invalid:', this.collectAllErrors());
             this.workflow_fg.markAllAsTouched();
             this.workflow_fg.updateValueAndValidity();
             return;
         }
-
-        console.log('Form is valid, submitting:', this.workflow_fg.value);
     }
 
     collectAllErrors() {
@@ -815,4 +818,12 @@ function collectAllErrors(control: AbstractControl, path: string = ''): Record<s
         }
     }
     return errors;
+}
+function minArrayLengthValidator(minLength: number): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+        if (control instanceof FormArray && control.length < minLength) {
+            return { minArrayLength: { requiredLength: minLength, actualLength: control.length } };
+        }
+        return null;
+    };
 }

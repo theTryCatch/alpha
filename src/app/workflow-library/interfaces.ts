@@ -37,12 +37,13 @@ export interface IWorkflowManifestFormGroup {
     description: FormControl<string>;
     workflowOwningGroup: FormControl<string>;
     emailAddress: FormControl<string>;
-    globals: FormControl<IStringOfAny | null>;
+    globals: FormControl<string | null>;
     steps: FormArray<FormGroup<IWorkflowStepForm>>;
 }
-export interface IStringOfAny {
-    [key: string]: any;
-}
+
+
+
+
 export interface IWorkflowManifest {
     name: string;
     workflowOwningGroup: string;
@@ -51,8 +52,8 @@ export interface IWorkflowManifest {
     description: string;
     steps: IWorkflowStep[];
 }
-export interface IStringOfString {
-    [key: string]: string;
+export interface IStringOfAny {
+    [key: string]: any;
 }
 export interface IWorkflowStep {
     name: string;
@@ -73,8 +74,8 @@ export interface IEnvironment {
     commandType: WorkflowStepCommandType;
     runtime: WorkflowStepRuntimeType;
     command: string;
-    inputparams: IStringOfAny;
-    outputparams: IStringOfAny;
+    inputparams: string;
+    outputparams: string;
 }
 export interface IOnEventSequential {
     actionType: WorkflowStepActionType;

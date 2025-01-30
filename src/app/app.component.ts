@@ -12,8 +12,8 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
   standalone: true,
   template: `
     <div class="container mx-auto p-4">
-      <workflow />
-      <!-- <workflow [workflow]="sampleJson" /> -->
+      <!-- <workflow /> -->
+      <workflow [workflow]="sampleJson" />
     </div>
   `,
   imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent, FormsModule, RouterModule, WorkflowComponent],
@@ -35,7 +35,13 @@ export class AppComponent {
       "maxRetryAttempts": 2,
       "retryDelaySeconds": 5
     },
-    "steps": [
+    "steps": []
+  }
+}
+
+/* 
+
+
       {
         "name": "GetTeamsFootprintV2",
         "description": "Get the V2 MS Teams footprint from registry.",
@@ -44,12 +50,8 @@ export class AppComponent {
           "commandType": WorkflowStepCommandType.script,
           "runtime": WorkflowStepRuntimeType.PowerShell,
           "command": "KB-CheckRegistry",
-          "inputparams": {
-            "keyPath": "globals.teamsRegPath",
-            "keyName": "Teams",
-            "Action": "GetValue"
-          },
-          "outputparams": {}
+          "inputparams": "[pscustomobject] @{path = globals.teamsRegPath; key = 'CachePath'}",
+          "outputparams": "sagars"
         },
         "outputVariable": "keyExists",
         "successCriteria": "keyExists -eq true",
@@ -86,8 +88,8 @@ export class AppComponent {
           "commandType": WorkflowStepCommandType.script,
           "runtime": WorkflowStepRuntimeType.PowerShell,
           "command": "KB-CheckProcess",
-          "inputparams": { "name": "globals.teamsV2ProcessName" },
-          "outputparams": { "processname": "processname", "processExists": "processExists" }
+          "inputparams": "something",
+          "outputparams": "otherthing"
         },
         "outputVariable": "processExists",
         "successCriteria": "processExists -eq true",
@@ -124,8 +126,8 @@ export class AppComponent {
           "commandType": WorkflowStepCommandType.script,
           "runtime": WorkflowStepRuntimeType.PowerShell,
           "command": "KB-CheckProcess",
-          "inputparams": { "name": "globals.teamsV1ProcessName" },
-          "outputparams": { "processname": "processname", "processExists": "processExists" }
+          "inputparams": "something",
+          "outputparams": "otherthing"
         },
         "outputVariable": "processExists",
         "successCriteria": "processExists -eq true",
@@ -154,6 +156,6 @@ export class AppComponent {
           "highestVersion": "3.0.0"
         }
       }
-    ]
-  }
-}
+    
+
+ */
