@@ -97,11 +97,11 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <label class="label">Name</label>
                             <input type="text" placeholder="Name of the step" class="input input-bordered w-full" formControlName="name"/>
 
-                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('name')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('name')?.touched)">
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['required']">Step name is required.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['minlength']">Step name should have at least {{workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['minlength'].requiredLength}} characters.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['maxlength']">Step name can have a maximum of {{workflow_fg.get('steps')?.get(i.toString())?.get('name')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                            <div *ngIf="step?.get('name')?.invalid && (step?.get('name')?.dirty || step?.get('name')?.touched)">
+                                <div class="text-error" *ngIf="step?.get('name')?.errors?.['required']">Step name is required.</div>
+                                <div class="text-error" *ngIf="step?.get('name')?.errors?.['pattern']">Only alphabets, numbers and underscores are allowed.</div>
+                                <div class="text-error" *ngIf="step?.get('name')?.errors?.['minlength']">Step name should have at least {{step?.get('name')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                <div class="text-error" *ngIf="step?.get('name')?.errors?.['maxlength']">Step name can have a maximum of {{step?.get('name')?.errors?.['maxlength'].requiredLength}} characters.</div>
                             </div>
 
                             <!-- #endregion -->
@@ -112,10 +112,10 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                             <textarea class="textarea textarea-bordered w-full" placeholder="Step description" formControlName="description"></textarea>
 
-                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('description')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('description')?.touched)">
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['required']">Step description is required.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['minlength']">Step description should have at least {{workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['minlength'].requiredLength}} characters.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['maxlength']">Step description can have a maximum of {{workflow_fg.get('steps')?.get(i.toString())?.get('description')?.errors?.['maxlength'].requiredLength}} characters.</div>
+                            <div *ngIf="step.get('description')?.invalid && (step.get('description')?.dirty || step.get('description')?.touched)">
+                                <div class="text-error" *ngIf="step.get('description')?.errors?.['required']">Step description is required.</div>
+                                <div class="text-error" *ngIf="step.get('description')?.errors?.['minlength']">Step description should have at least {{step.get('description')?.errors?.['minlength'].requiredLength}} characters.</div>
+                                <div class="text-error" *ngIf="step.get('description')?.errors?.['maxlength']">Step description can have a maximum of {{step.get('description')?.errors?.['maxlength'].requiredLength}} characters.</div>
                             </div>
 
                             <!-- #endregion -->
@@ -136,9 +136,9 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 
                             <input type="text" placeholder="Output variable" class="input input-bordered w-full" formControlName="outputVariable"/>
 
-                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.touched)">
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.errors?.['required']">Output variable is required.</div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('outputVariable')?.errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
+                            <div *ngIf="step.get('outputVariable')?.invalid && (step.get('outputVariable')?.dirty || step.get('outputVariable')?.touched)">
+                                <div class="text-error" *ngIf="step.get('outputVariable')?.errors?.['required']">Output variable is required.</div>
+                                <div class="text-error" *ngIf="step.get('outputVariable')?.errors?.['pattern']">Only alphabets, numbers, and underscores are allowed.</div>
                             </div>
 
                             <!-- #endregion -->
@@ -146,7 +146,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region SuccessCriteria -->
                             <label class="label">Success Criteria</label>
                             <textarea class="textarea textarea-bordered w-full" placeholder="success criteria" formControlName="successCriteria"></textarea>
-                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('successCriteria')?.touched)">
+                            <div class="text-error" *ngIf="step.get('successCriteria')?.invalid && (step.get('successCriteria')?.dirty || step.get('successCriteria')?.touched)">
                                 success criteria is required.
                             </div>
                             <!-- #endregion -->
@@ -154,9 +154,9 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region Timeout -->
                             <label class="label">Timeout</label>
                             <input type="number" placeholder="Timeout" class="input input-bordered w-full" formControlName="timeout"/>
-                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.touched)">
-                                <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['required']">Timeout is required.</div>
-                                <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['min']">Minimum timeout should be {{workflow_fg.get('steps')?.get(i.toString())?.get('timeout')?.errors?.['min'].min}} or higher.</div>
+                            <div class="text-error" *ngIf="step.get('timeout')?.invalid && (step.get('timeout')?.dirty || step.get('timeout')?.touched)">
+                                <div *ngIf="step.get('timeout')?.errors?.['required']">Timeout is required.</div>
+                                <div *ngIf="step.get('timeout')?.errors?.['min']">Minimum timeout should be {{step.get('timeout')?.errors?.['min'].min}} or higher.</div>
                             </div>
                             <!-- #endregion -->
 
@@ -195,8 +195,8 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                     <!-- #region Command -->
                                     <label class="label">Command</label>
                                     <input type="text" placeholder="Command" class="input input-bordered w-full" formControlName="command"/>
-                                    <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.invalid && (workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.dirty || workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.touched)">
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('environment')?.get('command')?.errors?.['required']">Command is required.</div>
+                                    <div class="text-error" *ngIf="step.get('environment')?.get('command')?.invalid && (step.get('environment')?.get('command')?.dirty || step.get('environment')?.get('command')?.touched)">
+                                        <div *ngIf="step.get('environment')?.get('command')?.errors?.['required']">Command is required.</div>
                                     </div>
                                     <!-- #endregion -->
 
@@ -233,15 +233,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                         <option disabled selected>Select Action Type</option>
                                         <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
                                     </select>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.errors?.['required']">
+                                    <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('actionType')?.errors?.['required']">
                                             Action type is required.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
 
                                     <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                    <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.value === workflowStepActionType">
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select a step</option>
@@ -250,36 +250,36 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                             </option>
 
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['required']">
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('step')?.errors?.['required']">
                                                 Step is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onSuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onSuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                     </div>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                    <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
                                         <label class="label">Trigger</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
                                             <option disabled selected>Select Trigger</option>
                                             <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['required']">
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('trigger')?.errors?.['required']">
                                                 Trigger is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onSuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onSuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                         
                                         <label class="label">Input Value</label>
                                         <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('inputValue')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onSuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                        <div *ngIf="step.get('onSuccessSequential')?.get('inputValue')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('inputValue')?.errors?.['required']">
                                                 Input value is required.
                                             </div>
                                         </div>
@@ -309,15 +309,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                         <option disabled selected>Select Action Type</option>
                                         <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
                                     </select>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.errors?.['required']">
+                                    <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.errors?.['required']">
                                             Action type is required.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
 
                                     <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.value === workflowStepActionType">
+                                    <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.value === workflowStepActionType">
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
@@ -325,37 +325,37 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                                 {{ item }}
                                             </option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['required']">
+                                        <div *ngIf="step.get('onUnsuccessSequential')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('step')?.errors?.['required']">
                                                 Step is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onUnsuccessSequential')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onUnsuccessSequential')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
+                                    <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.value === reservedAction_ActionType">
                                         <label class="label">Trigger</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
                                             <option disabled selected>Select Trigger</option>
                                             <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['required']">
+                                        <div *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['required']">
                                                 Trigger is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onUnsuccessSequential')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onUnsuccessSequential')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                         <div>
                                             <label class="label">Input Value</label>
                                             <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
-                                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
+                                            <div *ngIf="step.get('onUnsuccessSequential')?.get('inputValue')?.invalid">
+                                                <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('inputValue')?.errors?.['required']">
                                                     Input value is required.
                                                 </div>
                                             </div>
@@ -386,15 +386,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                         <option disabled selected>Select Action Type</option>
                                         <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
                                     </select>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.errors?.['required']">
+                                    <div *ngIf="step.get('onError')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="step.get('onError')?.get('actionType')?.errors?.['required']">
                                             Action type is required.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
 
                                     <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.value === workflowStepActionType">
+                                    <div *ngIf="step.get('onError')?.get('actionType')?.value === workflowStepActionType">
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
@@ -402,37 +402,37 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                                 {{ item }}
                                             </option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['required']">
+                                        <div *ngIf="step.get('onError')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('step')?.errors?.['required']">
                                                 Step is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onError')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onError')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('actionType')?.value === reservedAction_ActionType">
+                                    <div *ngIf="step.get('onError')?.get('actionType')?.value === reservedAction_ActionType">
                                         <label class="label">Trigger</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
                                             <option disabled selected>Select Trigger</option>
                                             <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['required']">
+                                        <div *ngIf="step.get('onError')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('trigger')?.errors?.['required']">
                                                 Trigger is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onError')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onError')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
 
                                         <label class="label">Input Value</label>
                                         <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onError')?.get('inputValue')?.errors?.['required']">
+                                        <div *ngIf="step.get('onError')?.get('inputValue')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('inputValue')?.errors?.['required']">
                                                 Input value is required.
                                             </div>
                                         </div>
@@ -462,15 +462,15 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                         <option disabled selected>Select Action Type</option>
                                         <option *ngFor="let type of actionTypes" [value]="type">{{type}}</option>
                                     </select>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.errors?.['required']">
+                                    <div *ngIf="step.get('onTimeout')?.get('actionType')?.invalid">
+                                        <div class="text-error" *ngIf="step.get('onTimeout')?.get('actionType')?.errors?.['required']">
                                             Action type is required.
                                         </div>
                                     </div>
                                     <!-- #endregion -->
 
                                     <!-- #region Based on actionType displaying the step or trigger along with inputValue -->
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.value === workflowStepActionType">
+                                    <div *ngIf="step.get('onTimeout')?.get('actionType')?.value === workflowStepActionType">
                                         <label class="label">Step</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="step">
                                             <option disabled selected>Select Step</option>
@@ -478,38 +478,38 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                                 {{ item }}
                                             </option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['required']">
+                                        <div *ngIf="step.get('onTimeout')?.get('step')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('step')?.errors?.['required']">
                                                 Step is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onTimeout')?.get('step')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onTimeout')?.get('step')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('actionType')?.value === reservedAction_ActionType">
+                                    <div *ngIf="step.get('onTimeout')?.get('actionType')?.value === reservedAction_ActionType">
                                         <label class="label">Trigger</label>
                                         <select class="select select-bordered w-full" title="Select an option" formControlName="trigger">
                                             <option disabled selected>Select Trigger</option>
                                             <option *ngFor="let type of (listOfReservedActions | async)" [value]="type">{{type}}</option>
                                         </select>
-                                        <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.invalid">
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['required']">
+                                        <div *ngIf="step.get('onTimeout')?.get('trigger')?.invalid">
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('trigger')?.errors?.['required']">
                                                 Trigger is required.
                                             </div>
-                                            <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']">
-                                                Value '{{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.value}}' not allowed. 
-                                                Allowed values are {{workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']">
+                                                Value '{{step.get('onTimeout')?.get('trigger')?.value}}' not allowed. 
+                                                Allowed values are {{step.get('onTimeout')?.get('trigger')?.errors?.['valueNotAllowed']?.allowedList | json}}.
                                             </div>
                                         </div>
                                     </div>
 
                                     <label class="label">Input Value</label>
                                     <textarea title="InputValue" class="textarea textarea-bordered w-full" placeholder="Input value" formControlName="inputValue"></textarea>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('inputValue')?.invalid">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('onTimeout')?.get('inputValue')?.errors?.['required']">
+                                    <div *ngIf="step.get('onTimeout')?.get('inputValue')?.invalid">
+                                        <div class="text-error" *ngIf="step.get('onTimeout')?.get('inputValue')?.errors?.['required']">
                                             Input value is required.
                                         </div>
                                     </div>
@@ -535,10 +535,10 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                     <!-- #region Lowest Version -->
                                     <label class="label">Lowest Version</label>
                                     <input type="text" placeholder="Lowest Version" class="input input-bordered w-full" formControlName="lowestVersion"/>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.touched)">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('lowestVersion')?.errors?.['required']">
+                                    <div *ngIf="step.get('versionRange')?.get('lowestVersion')?.invalid && 
+                                                (step.get('versionRange')?.get('lowestVersion')?.dirty || 
+                                                step.get('versionRange')?.get('lowestVersion')?.touched)">
+                                        <div class="text-error" *ngIf="step.get('versionRange')?.get('lowestVersion')?.errors?.['required']">
                                             Lowest Version is mandatory.
                                         </div>
                                     </div>
@@ -547,10 +547,10 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                                     <!-- #region Highest Version -->
                                     <label class="label">Highest Version</label>
                                     <input type="text" placeholder="Highest Version" class="input input-bordered w-full" formControlName="highestVersion"/>
-                                    <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.invalid && 
-                                                (workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.dirty || 
-                                                workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.touched)">
-                                        <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('versionRange')?.get('highestVersion')?.errors?.['required']">
+                                    <div *ngIf="step.get('versionRange')?.get('highestVersion')?.invalid && 
+                                                (step.get('versionRange')?.get('highestVersion')?.dirty || 
+                                                step.get('versionRange')?.get('highestVersion')?.touched)">
+                                        <div class="text-error" *ngIf="step.get('versionRange')?.get('highestVersion')?.errors?.['required']">
                                             Highest Version is mandatory.
                                         </div>
                                     </div>
@@ -562,13 +562,13 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
                             <!-- #region Wiki link -->
                             <label class="label">Wiki link</label>
                             <input type="text" placeholder="Wiki link" class="input input-bordered w-full" formControlName="wikiLink"/>
-                            <div *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.invalid && 
-                                        (workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.dirty || 
-                                        workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.touched)">
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.errors?.['required']">
+                            <div *ngIf="step.get('wikiLink')?.invalid && 
+                                        (step.get('wikiLink')?.dirty || 
+                                        step.get('wikiLink')?.touched)">
+                                <div class="text-error" *ngIf="step.get('wikiLink')?.errors?.['required']">
                                     Wiki link is required.
                                 </div>
-                                <div class="text-error" *ngIf="workflow_fg.get('steps')?.get(i.toString())?.get('wikiLink')?.errors?.['pattern']">
+                                <div class="text-error" *ngIf="step.get('wikiLink')?.errors?.['pattern']">
                                     Only valid internal URLs with the domain ms.com or morganstanley.com is allowed.
                                 </div>
                             </div>
