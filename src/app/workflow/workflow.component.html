@@ -125,6 +125,11 @@
                                     <option *ngFor="let type of executionTypes" [value]="type">{{type}}</option>
                                 </select>
 
+                                <div *ngIf="step.get('executionType')?.invalid && (step.get('executionType')?.dirty || step.get('executionType')?.touched)">
+                                    <div class="text-error" *ngIf="step.get('executionType')?.errors?.['required']">Step execution type is required.</div>
+                                    <div class="text-error" *ngIf="step.get('executionType')?.errors?.['InvalidExecutionType']">{{step.get('environment')?.get('commandType')?.errors?.['InvalidExecutionType']}}</div>
+                                </div>
+
                                 <!-- #endregion -->
 
                                 <!-- #region: OutputVariable -->
@@ -179,6 +184,11 @@
                                             <option disabled selected>Select Command Type</option>
                                             <option *ngFor="let type of commandTypes" [value]="type">{{type}}</option>
                                         </select>
+                                        <div *ngIf="step.get('environment')?.get('commandType')?.invalid && (step.get('environment')?.get('commandType')?.dirty || step.get('environment')?.get('commandType')?.touched)">
+                                            <div class="text-error" *ngIf="step.get('environment')?.get('commandType')?.errors?.['required']">Environment command type is required.</div>
+                                            <div class="text-error" *ngIf="step.get('environment')?.get('commandType')?.errors?.['InvalidCommandType']">{{step.get('environment')?.get('commandType')?.errors?.['InvalidCommandType']}}</div>
+                                        </div>
+
                                         <!-- #endregion -->
 
                                         <!-- #region Runtime -->
@@ -187,6 +197,10 @@
                                             <option disabled selected>Select Runtime</option>
                                             <option *ngFor="let runtime of runtimeTypes" [value]="runtime">{{runtime}}</option>
                                         </select>
+                                        <div *ngIf="step.get('environment')?.get('runtime')?.invalid && (step.get('environment')?.get('runtime')?.dirty || step.get('environment')?.get('runtime')?.touched)">
+                                            <div class="text-error" *ngIf="step.get('environment')?.get('runtime')?.errors?.['required']">Environment command type is required.</div>
+                                            <div class="text-error" *ngIf="step.get('environment')?.get('runtime')?.errors?.['InvalidRuntimeType']">{{step.get('environment')?.get('runtime')?.errors?.['InvalidRuntimeType']}}</div>
+                                        </div>
                                         <!-- #endregion -->
 
                                         <!-- #region Command -->
@@ -233,6 +247,9 @@
                                         <div *ngIf="step.get('onSuccessSequential')?.get('actionType')?.invalid">
                                             <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('actionType')?.errors?.['required']">
                                                 Action type is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="step.get('onSuccessSequential')?.get('actionType')?.errors?.['InvalidActionType']">
+                                                {{step.get('onSuccessSequential')?.get('actionType')?.errors?.['InvalidActionType']}}
                                             </div>
                                         </div>
                                         <!-- #endregion -->
@@ -309,6 +326,9 @@
                                         <div *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.invalid">
                                             <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.errors?.['required']">
                                                 Action type is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="step.get('onUnsuccessSequential')?.get('actionType')?.errors?.['InvalidActionType']">
+                                                {{step.get('onUnsuccessSequential')?.get('actionType')?.errors?.['InvalidActionType']}}
                                             </div>
                                         </div>
                                         <!-- #endregion -->
@@ -387,6 +407,9 @@
                                             <div class="text-error" *ngIf="step.get('onError')?.get('actionType')?.errors?.['required']">
                                                 Action type is required.
                                             </div>
+                                            <div class="text-error" *ngIf="step.get('onError')?.get('actionType')?.errors?.['InvalidActionType']">
+                                                {{step.get('onError')?.get('actionType')?.errors?.['InvalidActionType']}}
+                                            </div>
                                         </div>
                                         <!-- #endregion -->
 
@@ -462,6 +485,9 @@
                                         <div *ngIf="step.get('onTimeout')?.get('actionType')?.invalid">
                                             <div class="text-error" *ngIf="step.get('onTimeout')?.get('actionType')?.errors?.['required']">
                                                 Action type is required.
+                                            </div>
+                                            <div class="text-error" *ngIf="step.get('onTimeout')?.get('actionType')?.errors?.['InvalidActionType']">
+                                                {{step.get('onTimeout')?.get('actionType')?.errors?.['InvalidActionType']}}
                                             </div>
                                         </div>
                                         <!-- #endregion -->

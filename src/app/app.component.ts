@@ -22,7 +22,7 @@ import { IWorkflowManifest, WorkflowStepExecutionType, WorkflowStepCommandType, 
   imports: [CommonModule, DynamicJsonFormComponent, SelectAddEntryComponent, FormsModule, RouterModule, WorkflowComponent],
 })
 export class AppComponent {
-  sampleJsonFull: IWorkflowManifest = {
+  sampleJsonFull = {
     "name": "ClearTeamsCache",
     "description": "A workflow to clear the Microsoft Teams client cache in multiple steps.",
     "workflowOwningGroup": "ITSupport",
@@ -42,10 +42,10 @@ export class AppComponent {
       {
         "name": "GetTeamsFootprintV2",
         "description": "Get the V2 MS Teams footprint from registry.",
-        "executionType": WorkflowStepExecutionType.sequential,
+        "executionType": "sequentials",
         "environment": {
-          "commandType": WorkflowStepCommandType.script,
-          "runtime": WorkflowStepRuntimeType.PowerShell,
+          "commandType": "script",
+          "runtime": "PowerShell",
           "command": "KB-CheckRegistry",
           "inputparams": "[pscustomobject] @{path = globals.teamsRegPath; key = 'CachePath'}",
           "outputparams": "sagars"
@@ -54,20 +54,20 @@ export class AppComponent {
         "successCriteria": "keyExists -eq true",
         "timeout": 60,
         "onSuccessSequential": {
-          "actionType": WorkflowStepActionType.workflowStep,
+          "actionType": "workflowStep",
           "step": "CheckTeamsProcessRunningV2",
         },
         "onUnsuccessSequential": {
-          "actionType": WorkflowStepActionType.workflowStep,
-          "step": "GetTeamsFootprintV2",
+          "actionType": "workflowStep",
+          "step": "CheckTeamsProcessRunningV2",
         },
         "onError": {
-          "actionType": WorkflowStepActionType.reservedAction,
+          "actionType": "reservedAction",
           "trigger": "AbortWorkflow",
           "inputValue": "GetTeamsFootprintV2 failed aborting workflow."
         },
         "onTimeout": {
-          "actionType": WorkflowStepActionType.reservedAction,
+          "actionType": "reservedAction",
           "trigger": "AbortWorkflow",
           "inputValue": "GetTeamsFootprintV2 timed out, aborting workflow."
         },
@@ -172,5 +172,9 @@ export class AppComponent {
       "retryDelaySeconds": 5
     },
     "steps": []
+  }
+
+  isWorkflowManifest() {
+
   }
 }

@@ -3,10 +3,10 @@ import { BehaviorSubject } from "rxjs";
 
 export function valueInArrayValidator(stepNames$: BehaviorSubject<string[]>, excludeStepNames?: string): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    const stepNames = stepNames$.getValue().filter(i => i !== excludeStepNames); // ✅ Get latest step names
+    const stepNames = stepNames$.getValue().filter(i => i !== excludeStepNames); // Get latest step names
     if (!control.value || stepNames.includes(control.value)) {
-      return null; // ✅ Valid: Step exists in the list
+      return null; // Valid: Step exists in the list
     }
-    return { valueNotAllowed: { allowedList: stepNames } }; // ❌ Invalid step reference
+    return { valueNotAllowed: { allowedList: stepNames } }; // Invalid step reference
   };
 }

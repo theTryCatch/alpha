@@ -5,7 +5,7 @@ import { BehaviorSubject, map, Observable } from 'rxjs';
 import { jsonValidator } from '../workflow-library/validators/json.validator';
 import { valueInArrayValidator } from '../workflow-library/validators/valueInArray.validator';
 import { IWorkflowManifest, WorkflowStepCommandType, WorkflowStepRuntimeType, WorkflowStepActionType, IWorkflowManifestFormGroup, IStringOfAny, IWorkflowStepForm, IWorkflowStep, IEnvironmentForm, IVersionRangeForm, IActionHandlerForm, WorkflowStepExecutionType } from '../workflow-library/interfaces';
-import { atLeastOneValidStepValidator } from '../workflow-library/validators/atLeastOneValidStepValidator';
+import { isValidActionType, isValidCommandType, isValidExecutionType, isValidRuntime } from '../workflow-library/validators/stepsValidators';
 
 @Component({
     selector: 'workflow',
@@ -16,7 +16,7 @@ import { atLeastOneValidStepValidator } from '../workflow-library/validators/atL
 })
 export class WorkflowComponent implements OnInit, AfterViewInit {
     @ViewChild('globalsTextarea') globalsTextarea!: ElementRef<HTMLTextAreaElement>;
-    @Input() workflow?: IWorkflowManifest;
+    @Input() workflow?: any;
 
     stepNames = new BehaviorSubject<string[]>([]);
     executionTypes = Object.values(WorkflowStepExecutionType);
@@ -180,13 +180,13 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         const stepGroup = this.fb.group<IWorkflowStepForm>({
             name: this.fb.control(step?.name ?? '', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/), Validators.minLength(3), Validators.maxLength(50)] }),
             description: this.fb.control(step?.description ?? '', { nonNullable: true, validators: [Validators.required, Validators.minLength(10), Validators.maxLength(500)] }),
-            executionType: this.fb.control(step?.executionType ?? WorkflowStepExecutionType.sequential, { nonNullable: true, validators: [Validators.required] }),
+            executionType: this.fb.control(step?.executionType ?? WorkflowStepExecutionType.sequential, { nonNullable: true, validators: [isValidExecutionType()] }),
             outputVariable: this.fb.control(step?.outputVariable ?? '', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)] }),
             successCriteria: this.fb.control(step?.successCriteria ?? '', { nonNullable: true, validators: [Validators.required] }),
             timeout: this.fb.control(step?.timeout ?? 30, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
             environment: this.fb.group<IEnvironmentForm>({
-                commandType: this.fb.control(step?.environment?.commandType ?? WorkflowStepCommandType.script, { nonNullable: true, validators: [Validators.required] }),
-                runtime: this.fb.control(step?.environment?.runtime ?? WorkflowStepRuntimeType.PowerShell, { nonNullable: true, validators: [Validators.required] }),
+                commandType: this.fb.control(step?.environment?.commandType ?? WorkflowStepCommandType.script, { nonNullable: true, validators: [Validators.required, isValidCommandType()] }),
+                runtime: this.fb.control(step?.environment?.runtime ?? WorkflowStepRuntimeType.PowerShell, { nonNullable: true, validators: [Validators.required, isValidRuntime()] }),
                 command: this.fb.control(step?.environment?.command ?? '', { nonNullable: true, validators: [Validators.required] }),
                 inputparams: this.fb.control<string | null>(step?.environment?.inputparams ? step.environment.inputparams : null),
                 outputparams: this.fb.control<string | null>(step?.environment?.outputparams ? step.environment.outputparams : null),
@@ -221,7 +221,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
 
         const actionTypeControl = this.fb.control(actionData?.actionType ?? WorkflowStepActionType.workflowStep, {
             nonNullable: true,
-            validators: [Validators.required],
+            validators: [Validators.required, isValidActionType()],
         });
 
         const stepControl = this.fb.control<string | null>(
@@ -231,7 +231,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         const triggerControl = this.fb.control<string | null>(actionData?.trigger ?? null);
         const inputValueControl = this.fb.control<string | null>(actionData?.inputValue ?? null);
 
-        // ✅ Apply Correct Validation Rules Immediately
+        // Apply Correct Validation Rules Immediately
         this.applyActionTypeValidation(
             actionTypeControl.value,
             stepControl,
@@ -259,10 +259,10 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
         currentStepName?: string // New: Pass current step name to exclude it from allowed values
     ): void {
         if (actionType === WorkflowStepActionType.workflowStep) {
-            // ✅ Step must be in the list of step names excluding itself
+            // Step must be in the list of step names excluding itself
             stepControl.setValidators([
                 Validators.required,
-                valueInArrayValidator(this.stepNames, currentStepName) // Ensures value is in the list excluding itself
+                valueInArrayValidator(this.stepNames, currentStepName), // Ensures value is in the list excluding itself
             ]);
             triggerControl.clearValidators();
             inputValueControl.clearValidators();
@@ -271,6 +271,7 @@ export class WorkflowComponent implements OnInit, AfterViewInit {
             triggerControl.setValidators([Validators.required]);
             inputValueControl.setValidators([Validators.required]);
         } else {
+            console.log(actionType);
             stepControl.clearValidators();
             triggerControl.clearValidators();
             inputValueControl.clearValidators();
