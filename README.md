@@ -1,100 +1,199 @@
-# Encouraging Book Reading to Counter Digital Addiction and Foster Growth
+import { Injectable, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 
-## Introduction
+export interface IFTUIColor {
+  background: string;
+  foreground: string;
+  inputType: 'inlineStyle' | 'cssClass';
+}
 
-In recent times, I have observed how excessive screen usage, particularly scrolling through reels, has consumed a significant portion of my daily life. Without realizing it, hours pass by, leaving me feeling drained, less focused, and emotionally unbalanced. What was even more alarming was witnessing similar effects on my toddler daughter. This realization led me to explore alternatives to digital distractions and ways to cultivate healthier habits.
+export interface IFTUIDialogActionButton {
+  name: string;
+  isDefault: boolean;
+  isDisabled: boolean;
+  isHidden: boolean;
+  tooltip?: string;
+  color: IFTUIColor;
+}
 
-## The Power of Reading as a Replacement
+export interface IFTUIDialogIcon {
+  name: string;
+  color: IFTUIColor;
+}
 
-Through experimentation, I found that reading books is the best alternative to screen addiction. Reading not only offers a pleasurable escape but also enhances multiple cognitive and emotional aspects such as:
+export interface IFTUIDialogIncomingData {
+  dialogTitle: string;
+  message: string;
+  messageCategory: 'information' | 'warning' | 'error';
+  actionButtons: IFTUIDialogActionButton[];
+  hideDialogIcon: boolean;
+}
 
-- Improved concentration
-- Enhanced communication skills
-- Expanded vocabulary
-- Reduced anxiety and increased calmness
+@Injectable({
+  providedIn: 'root' // Ensures the service is available globally
+})
+export class FTUIConfirmationDialogService implements OnDestroy {
+  private dialogDataSubject = new BehaviorSubject<IFTUIDialogIncomingData | null>(null);
+  dialogData$: Observable<IFTUIDialogIncomingData | null> = this.dialogDataSubject.asObservable();
 
-Understanding these benefits, I began collecting and reading books—both technical and non-technical. This new habit transformed my daily routine, bringing a sense of accomplishment and mental clarity.
+  constructor() {}
 
-## Extending the Initiative to the Workplace
+  ngOnDestroy(): void {
+    this.dialogDataSubject.complete();
+    console.log('Dialog service destroyed');
+  }
 
-As I reflected on my journey, I realized that many of my colleagues were struggling with the same digital addiction. To encourage them to read, I brought my personal book collection to the office and placed them on my desk for anyone interested. This simple step sparked curiosity, and soon, colleagues started reading the books. Some of them, who were already avid readers, contributed their own books to the collection.
+  openDialog(data: IFTUIDialogIncomingData) {
+    console.log('Opening dialog with data:', data);
+    this.dialogDataSubject.next(data);
+  }
 
-Currently, the books are available only for in-office reading, as there is no proper system in place to track them if taken home.
+  closeDialog() {
+    console.log('Closing dialog');
+    this.dialogDataSubject.next(null);
+  }
 
-## Building a Book Lending Application
+  getMessageCategoryColor(messageCategory: 'information' | 'warning' | 'error'): IFTUIColor {
+    switch (messageCategory) {
+      case 'information':
+        return { background: 'beige', foreground: 'green', inputType: 'inlineStyle' };
+      case 'warning':
+        return { background: 'orange', foreground: 'darkslategray', inputType: 'inlineStyle' };
+      case 'error':
+        return { background: 'red', foreground: 'white', inputType: 'inlineStyle' };
+      default:
+        throw new Error('Invalid message category: ' + messageCategory);
+    }
+  }
 
-Even before this initiative reached my ears, I had already considered developing an application to facilitate book lending among colleagues. The application would allow users to:
+  getMessageIconConfig(messageCategory: 'information' | 'warning' | 'error'): IFTUIDialogIcon {
+    switch (messageCategory) {
+      case 'information':
+        return { name: 'info', color: { background: 'transparent', foreground: this.getMessageCategoryColor(messageCategory).foreground, inputType: this.getMessageCategoryColor(messageCategory)?.inputType } };
+      case 'warning':
+        return { name: 'warning', color: { background: 'transparent', foreground: this.getMessageCategoryColor(messageCategory).foreground, inputType: this.getMessageCategoryColor(messageCategory)?.inputType } };
+      case 'error':
+        return { name: 'error', color: { background: 'transparent', foreground: this.getMessageCategoryColor(messageCategory).foreground, inputType: this.getMessageCategoryColor(messageCategory)?.inputType } };
+      default:
+        throw new Error('Invalid message category: ' + messageCategory);
+    }
+  }
 
-- **Lenders** register their books with details such as:
+  handleActionButtonClick(data: IFTUIDialogActionButton) {
+    console.log('Handling action button click:', data);
+    this.closeDialog();
+  }
+}
 
-  - Title, author, genre, and current condition
-  - Lending duration and next availability
-  - Location and aggregated ratings
-  - Cost (for reference)
-  - Current borrower details
 
-- **Lendees** can browse books based on availability and location, request to borrow, and return the book by the specified due date.
 
-- **Lenders** can approve or reject requests based on the borrower’s past ratings.
 
-- Upon return, **lenders** can rate borrowers based on book condition, punctuality, and overall responsibility.
 
-This system can help colleagues develop a sustained reading habit while ensuring accountability within the lending process.
 
-## Expanding the Scope: Audiobooks and CSR
 
-While employees may not always have the time to read physical books during work hours, they often have free listening time—such as during long commutes. This presents an opportunity to expand our initiative to audiobooks.
 
-### Challenges and Opportunities:
 
-1. **Physical Books (Current Implementation):**
 
-   - This is already in place, with books available in-office.
-   - Scaling up requires an application for tracking books.
 
-2. **E-books:**
 
-   - Out of scope due to licensing and budget constraints.
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule, NgForOf, NgIf } from '@angular/common';
+import { FTUIConfirmationDialogService, IFTUIDialogActionButton, IFTUIColor, IFTUIDialogIcon } from '../../services/confirmation-dialog.service';
 
-3. **Audiobooks:**
+@Component({
+  selector: 'ftui-confirmation-dialog',
+  standalone: true,
+  imports: [CommonModule, NgForOf, NgIf],
+  templateUrl: './confirmation-dialog.component.html',
+  styleUrls: ['./confirmation-dialog.component.scss']
+})
+export class FTUIConfirmationDialogComponent implements OnInit {
+  @Input({ required: true }) dialogTitle: string = 'Confirmation...';
+  @Input({ required: true }) message: string = 'Are you sure you want to delete this record?';
+  @Input({ required: true }) messageCategory: 'information' | 'warning' | 'error' = 'information';
+  @Input({ required: true }) actionButtons: IFTUIDialogActionButton[] = [];
+  @Input({ required: false }) hideDialogIcon: boolean = false;
 
-   - While initially out of scope, we can leverage mobile applications to facilitate audiobook recordings.
-   - Employees can record books in a neutral tone, maintaining a clear pace and universally understandable pronunciation.
-   - This initiative can serve multiple purposes:
-     - Employees improve their communication and public speaking skills.
-     - Audiobooks can be made available to colleagues for on-the-go learning.
-     - As a CSR initiative, recorded audiobooks can be donated to charities, especially benefiting individuals with special needs.
+  @Output() onActionButtonClicked: EventEmitter<IFTUIDialogActionButton> = new EventEmitter<IFTUIDialogActionButton>();
 
-## Additional Engagement Activities
+  constructor(private dialogService: FTUIConfirmationDialogService) {
+    console.log('Confirmation dialog component constructor called with inputs:', {
+      dialogTitle: this.dialogTitle,
+      message: this.message,
+      messageCategory: this.messageCategory,
+      actionButtons: this.actionButtons,
+      hideDialogIcon: this.hideDialogIcon
+    });
+  }
 
-To further encourage participation, we can introduce:
+  ngOnInit() {
+    console.log('Confirmation dialog component initialized with data:', {
+      dialogTitle: this.dialogTitle,
+      message: this.message,
+      messageCategory: this.messageCategory,
+      actionButtons: this.actionButtons,
+      hideDialogIcon: this.hideDialogIcon
+    });
+  }
 
-1. **Monthly Book Talks:**
-   - Employees can present TED-style talks summarizing books they have read, aligned with existing programs like WTS People Program.
-2. **Group Discussions:**
-   - Book-related discussions to enhance comprehension, critical thinking, and collaborative learning.
+  get messageCategoryColor(): IFTUIColor {
+    console.log('Getting message category color for:', this.messageCategory);
+    return this.dialogService.getMessageCategoryColor(this.messageCategory);
+  }
 
-## Challenges and Considerations
+  get messageIconConfig(): IFTUIDialogIcon {
+    console.log('Getting message icon config for:', this.messageCategory);
+    return this.dialogService.getMessageIconConfig(this.messageCategory);
+  }
 
-1. **Company Sponsorship:**
-   - Would the organization be willing to fund books and maintain an official library? If yes, implementation becomes easier.
-   - If not, we may need to continue maintaining the book club as a peer-driven initiative.
+  actionButtonClicked(actionButton: IFTUIDialogActionButton) {
+    console.log('Button clicked in component:', actionButton.name);
+    this.dialogService.handleActionButtonClick(actionButton);
+    this.onActionButtonClicked.emit(actionButton);
+  }
+}
 
-2. **Application Development:**
-   - Developing and maintaining the lending application might require additional resources, making it a stretch project.
 
-3. **Legal Considerations for Audiobooks:**
-   - Are there copyright limitations that may prevent us from recording and distributing audiobooks as a CSR initiative?
 
-4. **Book Lending Risks:**
-   - Risk of books being lost, damaged, or not returned on time.
-   - Potential consequences if a borrower leaves the company without returning a book.
 
-5. **Audiobook Quality and Safety Control:**
-   - We can't allow voice donations for audiobooks to be released as-is.
-   - Each recording should be limited to 5-minute segments for easier review and approval.
-   - This ensures quality control, maintains a consistent listening experience, and prevents inappropriate or inaccurate content from being distributed.
 
-## Conclusion
 
-This initiative has the potential to significantly impact employees’ mental well-being, personal growth, and social contribution. By making reading more accessible and integrating audiobook recordings as a CSR initiative, we can build a sustainable program that benefits both individuals and society. With proper planning and support, this initiative can create a long-lasting cultural shift toward mindful content consumption and personal development.
+
+
+
+
+
+
+
+<div class="modal modal-open">
+  <div class="modal-box max-n-70vh p-0">
+    <div class="modal-header p-2" [ngStyle]="{'background-color': messageCategoryColor?.background, 'color': messageCategoryColor?.foreground}">
+      <div class="flex items-center">
+        <i class="material-icons mr-2 text-{{(messageIconConfig?.color?.foreground)}}" *ngIf="!hideDialogIcon">
+          {{messageIconConfig?.name}}
+        </i>
+        <h3 class="text-lg font-bold">{{dialogTitle}}</h3>
+      </div>
+    </div>
+    <div class="modal-content my-4 p-2 overflow-auto">
+      <div [innerHTML]="message"></div>
+    </div>
+    <div class="modal-action justify-between flex-wrap gap-2 p-2">
+      <ng-container *ngFor="let button of actionButtons">
+        <ng-container *ngIf="!button.isHidden">
+          <button
+            class="btn"
+            [class.btn-border-none]="!button?.isDefault"
+            [class.btn-primary]="button?.isDefault"
+            [class.btn-disabled]="button.isDisabled"
+            [attr.title]="button.tooltip"
+            [ngStyle]="button?.color?.inputType === 'inlineStyle' ? {'background-color': button?.color?.background, 'color': button?.color?.foreground} : null"
+            [ngClass]="button?.color?.inputType === 'cssClass' ? [button?.color?.background, button?.color?.foreground] : ''"
+            (click)="actionButtonClicked(button)">
+            {{button.name}}
+          </button>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+</div>
