@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
 
 app = FastAPI()
 
@@ -9,24 +9,24 @@ async def execute_powershell(
 ):
     return {"message": "Code received", "code": code}
 
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="FastAPI - PowerShell Execution",
-        swagger_favicon_url=None,
-        swagger_ui_parameters={
-            "dom_id": "#swagger-ui",
-            "syntaxHighlight.theme": "monokai"  # Optional, makes code look better
-        }
-    ) + """
-    <style>
-        textarea { 
-            min-height: 200px !important; 
-            resize: both !important;
-            white-space: pre-wrap !important;
-            font-family: monospace;
-        }
-    </style>
-    """
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="PowerShell Execution API",
+        version="1.0.0",
+        description="An API to execute PowerShell scripts",
+        routes=app.routes,
+    )
+    
+    # Locate the schema definition for `code` and override it as a textarea
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            for param in method.get("parameters", []):
+                if param.get("name") == "code":
+                    param["schema"]["format"] = "textarea"
 
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi  # Override OpenAPI schema
