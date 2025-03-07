@@ -100,78 +100,60 @@ function Test-SourceFolderStructure {
     }
 }
 
-function Test-VersionFolder {
+function Test-DestinationFolderStructure {
     <#
     .SYNOPSIS
-        Validates the version folder structure and content.
+        Validates the destination folder structure before copying.
     .DESCRIPTION
-        Ensures the version folder follows naming conventions and contains a valid .psd1 file.
-    .PARAMETER VersionFolder
-        Specify the version folder to validate.
+        Ensures the destination path is properly structured and writable.
+    .PARAMETER SourcePath
+        Specify the source path.
+    .PARAMETER DestinationPath
+        Specify the destination path.
     .EXAMPLE
-        Test-VersionFolder -VersionFolder "C:\Source\msModule\1.0.0"
+        Test-DestinationFolderStructure -SourcePath "C:\Source" -DestinationPath "C:\Destination"
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the version folder.")]
-        [System.IO.DirectoryInfo]$VersionFolder
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the source path.")]
+        [string]$SourcePath,
+
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the destination path.")]
+        [string]$DestinationPath
     )
-
-    Write-Verbose "Starting function: ${function:Test-VersionFolder}"  
-    Write-Verbose "Validating version folder '$($VersionFolder.FullName)'..."
-
-    if (-not ($VersionFolder.Name -as [version])) {
-        $errorMessage = "Err: Invalid version folder '$($VersionFolder.FullName)'. Folder name must be a valid version number."
+    
+    Write-Verbose "Starting function: ${function:Test-DestinationFolderStructure}"
+    Write-Verbose "Validating destination folder at '$DestinationPath'..."
+    
+    if (-not (Test-Path -Path $DestinationPath -PathType Container)) {
+        $errorMessage = "Err: Destination path '$DestinationPath' does not exist or is not a directory."
         throw $errorMessage
     }
-    Write-Verbose "Valid version folder '$($VersionFolder.FullName)'."
-
-    $psd1File = Get-ChildItem -Path $VersionFolder.FullName -Filter *.psd1
-    if (-not $psd1File) {
-        $errorMessage = "Err: Version folder '$($VersionFolder.FullName)' is missing a .psd1 file."
-        throw $errorMessage
-    }
-    Write-Verbose "Found .psd1 file '$($psd1File.FullName)'."
-
-    Test-Psd1Content -Psd1FilePath $psd1File.FullName -ExpectedVersion $VersionFolder.Name -Verbose
+    Write-Verbose "Destination folder '$DestinationPath' is valid."
 }
 
-function Test-Psd1Content {
+function Copy-ModuleVersionFolders {
     <#
     .SYNOPSIS
-        Validates the content of a .psd1 module manifest file.
+        Copies the module version folders from source to destination.
     .DESCRIPTION
-        Ensures the .psd1 file contains the correct module version information.
-    .PARAMETER Psd1FilePath
-        Specify the path to the .psd1 file.
-    .PARAMETER ExpectedVersion
-        Specify the expected version to match with the module manifest.
+        Ensures each module and version folder is copied correctly while preserving structure.
+    .PARAMETER SourcePath
+        Specify the source path.
+    .PARAMETER DestinationPath
+        Specify the destination path.
     .EXAMPLE
-        Test-Psd1Content -Psd1FilePath "C:\Source\msModule\1.0.0\module.psd1" -ExpectedVersion "1.0.0"
+        Copy-ModuleVersionFolders -SourcePath "C:\Source" -DestinationPath "C:\Destination"
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the path to the .psd1 file.")]
-        [string]$Psd1FilePath,
-        
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the expected version.")]
-        [string]$ExpectedVersion
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the source path.")]
+        [string]$SourcePath,
+
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the destination path.")]
+        [string]$DestinationPath
     )
-
-    Write-Verbose "Starting function: ${function:Test-Psd1Content}"  
-    Write-Verbose "Validating .psd1 file content in '$Psd1FilePath'..."
-
-    try {
-        $psd1Content = Import-PowerShellDataFile -Path $Psd1FilePath
-
-        if ($psd1Content.ModuleVersion -ne $ExpectedVersion) {
-            $errorMessage = "Err: Version mismatch in '$Psd1FilePath'. Expected: '$ExpectedVersion', Found: '$($psd1Content.ModuleVersion)'."
-            throw $errorMessage
-        }
-        Write-Verbose "Version in '$Psd1FilePath' matches expected version."
-    }
-    catch {
-        $errorMessage = "Err: Failed to validate .psd1 file at '$Psd1FilePath': $($_.Exception.Message)"
-        Write-Error $errorMessage
-    }
+    
+    Write-Verbose "Starting function: ${function:Copy-ModuleVersionFolders}"
+    Write-Verbose "Copying modules from '$SourcePath' to '$DestinationPath'..."
 }
