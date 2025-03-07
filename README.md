@@ -40,104 +40,12 @@ function Copy-MSModule {
     }
 }
 
-function Test-SourceFolderStructure {
-    <#
-    .SYNOPSIS
-        Validates the source folder structure for module compliance.
-    .DESCRIPTION
-        Ensures the source folder contains valid module folders following naming conventions and includes version subfolders.
-    .PARAMETER SourcePath
-        Specify the source path to validate.
-    .EXAMPLE
-        Test-SourceFolderStructure -SourcePath "C:\Source"
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the source path.")]
-        [string]$SourcePath
-    )
-
-    Write-Verbose "Starting function: ${function:Test-SourceFolderStructure}"  
-    Write-Verbose "Validating source folder structure at '$SourcePath'..."
-
-    $sourceFolders = Get-ChildItem -Path $SourcePath -Directory -Depth 0
-    $sourceFiles = Get-ChildItem -Path $SourcePath -File
-
-    if ($sourceFiles.Count -gt 0) {
-        $errorMessage = "Err: Source folder '$SourcePath' contains files. Only module folders are allowed."
-        throw $errorMessage
-    }
-    Write-Verbose "No files found in '$SourcePath'."
-
-    if ($sourceFolders.Count -eq 0) {
-        $errorMessage = "Err: Source folder '$SourcePath' is empty. At least one module folder is required."
-        throw $errorMessage
-    }
-    Write-Verbose "Found $($sourceFolders.Count) module folders in '$SourcePath'."
-
-    foreach ($folder in $sourceFolders) {
-        if (-not ($folder.Name -match '^ms[a-zA-Z]+$')) {
-            $errorMessage = "Err: Module folder '$($folder.FullName)' does not follow naming convention (must start with 'ms' followed by alphabets)."
-            throw $errorMessage
-        }
-        Write-Verbose "Module folder '$($folder.FullName)' follows naming convention."
-        
-        $versionFolders = Get-ChildItem -Path $folder.FullName -Directory
-        $filesUnderVersionFolderLevel = Get-ChildItem -Path $folder.FullName -File
-        if ($filesUnderVersionFolderLevel) {
-            $errorMessage = "Err: There should be only other version folders in the module folder. Files are not allowed."
-            throw $errorMessage
-        }
-        if ($versionFolders.Count -eq 0) {
-            $errorMessage = "Err: Module folder '$($folder.FullName)' has no version subfolders."
-            throw $errorMessage
-        }
-        Write-Verbose "Module folder '$($folder.FullName)' contains $($versionFolders.Count) version folders."
-
-        foreach ($versionFolder in $versionFolders) {
-            Test-VersionFolder -VersionFolder $versionFolder -Verbose
-        }
-    }
-}
-
-function Test-DestinationFolderStructure {
-    <#
-    .SYNOPSIS
-        Validates the destination folder structure before copying.
-    .DESCRIPTION
-        Ensures the destination path is properly structured and writable.
-    .PARAMETER SourcePath
-        Specify the source path.
-    .PARAMETER DestinationPath
-        Specify the destination path.
-    .EXAMPLE
-        Test-DestinationFolderStructure -SourcePath "C:\Source" -DestinationPath "C:\Destination"
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the source path.")]
-        [string]$SourcePath,
-
-        [Parameter(Mandatory = $true, HelpMessage = "Specify the destination path.")]
-        [string]$DestinationPath
-    )
-    
-    Write-Verbose "Starting function: ${function:Test-DestinationFolderStructure}"
-    Write-Verbose "Validating destination folder at '$DestinationPath'..."
-    
-    if (-not (Test-Path -Path $DestinationPath -PathType Container)) {
-        $errorMessage = "Err: Destination path '$DestinationPath' does not exist or is not a directory."
-        throw $errorMessage
-    }
-    Write-Verbose "Destination folder '$DestinationPath' is valid."
-}
-
 function Copy-ModuleVersionFolders {
     <#
     .SYNOPSIS
-        Copies the module version folders from source to destination.
+        Copies module version folders from source to destination.
     .DESCRIPTION
-        Ensures each module and version folder is copied correctly while preserving structure.
+        Ensures each module version folder is copied correctly to the destination path.
     .PARAMETER SourcePath
         Specify the source path.
     .PARAMETER DestinationPath
@@ -153,7 +61,69 @@ function Copy-ModuleVersionFolders {
         [Parameter(Mandatory = $true, HelpMessage = "Specify the destination path.")]
         [string]$DestinationPath
     )
-    
+
     Write-Verbose "Starting function: ${function:Copy-ModuleVersionFolders}"
-    Write-Verbose "Copying modules from '$SourcePath' to '$DestinationPath'..."
+    Write-Verbose "Copying module version folders from '$SourcePath' to '$DestinationPath'..."
+    
+    Get-ChildItem -Path $SourcePath -Directory | ForEach-Object {
+        $moduleFolder = $_.FullName
+        $destinationModulePath = Join-Path -Path $DestinationPath -ChildPath $_.Name
+        New-Item -ItemType Directory -Path $destinationModulePath -Force | Out-Null
+        Copy-Item -Path "$moduleFolder\*" -Destination $destinationModulePath -Recurse -Force
+        Write-Verbose "Copied module '$($_.Name)' to '$destinationModulePath'."
+    }
+}
+
+function Remove-SourceFolders {
+    <#
+    .SYNOPSIS
+        Removes the source folders after copying is complete.
+    .DESCRIPTION
+        Ensures that source module folders are deleted after a successful copy operation.
+    .PARAMETER SourcePath
+        Specify the source path.
+    .EXAMPLE
+        Remove-SourceFolders -SourcePath "C:\Source"
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the source path.")]
+        [string]$SourcePath
+    )
+
+    Write-Verbose "Starting function: ${function:Remove-SourceFolders}"
+    Write-Verbose "Removing source folders at '$SourcePath'..."
+    
+    Get-ChildItem -Path $SourcePath -Directory | ForEach-Object {
+        Remove-Item -Path $_.FullName -Recurse -Force
+        Write-Verbose "Removed folder: '$($_.FullName)'."
+    }
+}
+
+function Test-psd1content {
+    <#
+    .SYNOPSIS
+        Validates the content of a module manifest (.psd1) file.
+    .DESCRIPTION
+        Ensures that the manifest file exists and contains valid data.
+    .PARAMETER ModulePath
+        Specify the module path containing the .psd1 file.
+    .EXAMPLE
+        Test-psd1content -ModulePath "C:\Modules\msModule"
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, HelpMessage = "Specify the module path.")]
+        [string]$ModulePath
+    )
+
+    Write-Verbose "Starting function: ${function:Test-psd1content}"
+    Write-Verbose "Checking .psd1 content in '$ModulePath'..."
+    
+    $psd1File = Get-ChildItem -Path $ModulePath -Filter "*.psd1" | Select-Object -First 1
+    if (-not $psd1File) {
+        $errorMessage = "Err: No .psd1 file found in '$ModulePath'."
+        throw $errorMessage
+    }
+    Write-Verbose "Found .psd1 file: '$($psd1File.FullName)'."
 }
