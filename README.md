@@ -211,4 +211,10 @@ function Remove-SourceFolders {
             Write-Verbose "Successfully removed folder '$($folder.FullName)'."
         }
         catch {
-            $errorMessage = "Failed
+            $errorMessage = "Failed to remove '$($folder.FullName)': $($_.Exception.Message)"
+            Write-Verbose "Err: $errorMessage"
+            Write-Error $errorMessage
+        }
+    }
+    Write-Verbose "Source folders removed successfully."
+}
