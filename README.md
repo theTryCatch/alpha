@@ -1,100 +1,220 @@
-# Encouraging Book Reading to Counter Digital Addiction and Foster Growth
+function Copy-MSModule {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({ Test-Path $_ })]
+        [string]$SourcePath,
 
-## Introduction
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({ Test-Path $_ })]
+        [string]$DestinationPath
+    )
 
-In recent times, I have observed how excessive screen usage, particularly scrolling through reels, has consumed a significant portion of my daily life. Without realizing it, hours pass by, leaving me feeling drained, less focused, and emotionally unbalanced. What was even more alarming was witnessing similar effects on my toddler daughter. This realization led me to explore alternatives to digital distractions and ways to cultivate healthier habits.
+    try {
+        Write-Verbose "Starting module copy from '$SourcePath' to '$DestinationPath'."
 
-## The Power of Reading as a Replacement
+        Test-SourceFolderStructure -SourcePath $SourcePath -ErrorAction Stop
+        Test-DestinationFolderStructure -SourcePath $SourcePath -DestinationPath $DestinationPath -ErrorAction Stop
+        Copy-ModuleVersionFolders -SourcePath $SourcePath -DestinationPath $DestinationPath -ErrorAction Stop
+        Remove-SourceFolders -SourcePath $SourcePath -ErrorAction Stop
 
-Through experimentation, I found that reading books is the best alternative to screen addiction. Reading not only offers a pleasurable escape but also enhances multiple cognitive and emotional aspects such as:
+        Write-Verbose "Module copy completed successfully from '$SourcePath' to '$DestinationPath'."
+    }
+    catch {
+        Write-Verbose "Err: Error during module copy: $($_.Exception.Message)"
+        Write-Error "Error during module copy: $($_.Exception.Message)"
+    }
+}
 
-- Improved concentration
-- Enhanced communication skills
-- Expanded vocabulary
-- Reduced anxiety and increased calmness
+function Test-SourceFolderStructure {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourcePath
+    )
 
-Understanding these benefits, I began collecting and reading books—both technical and non-technical. This new habit transformed my daily routine, bringing a sense of accomplishment and mental clarity.
+    Write-Verbose "Validating source folder structure at '$SourcePath'..."
 
-## Extending the Initiative to the Workplace
+    $sourceFolders = Get-ChildItem -Path $SourcePath -Directory -Depth 0
+    $sourceFiles = Get-ChildItem -Path $SourcePath -File
 
-As I reflected on my journey, I realized that many of my colleagues were struggling with the same digital addiction. To encourage them to read, I brought my personal book collection to the office and placed them on my desk for anyone interested. This simple step sparked curiosity, and soon, colleagues started reading the books. Some of them, who were already avid readers, contributed their own books to the collection.
+    if ($sourceFiles.Count -gt 0) {
+        $errorMessage = "Source folder '$SourcePath' contains files. Only module folders are allowed."
+        Write-Verbose "Err: $errorMessage"
+        throw $errorMessage
+    }
+    Write-Verbose "No files found in '$SourcePath'."
 
-Currently, the books are available only for in-office reading, as there is no proper system in place to track them if taken home.
+    if ($sourceFolders.Count -eq 0) {
+        $errorMessage = "Source folder '$SourcePath' is empty. At least one module folder is required."
+        Write-Verbose "Err: $errorMessage"
+        throw $errorMessage
+    }
+    Write-Verbose "Found $($sourceFolders.Count) module folders in '$SourcePath'."
 
-## Building a Book Lending Application
+    foreach ($folder in $sourceFolders) {
+        if (-not ($folder.Name -match '^ms[a-zA-Z]+$')) {
+            $errorMessage = "Module folder '$($folder.FullName)' does not follow naming convention (must start with 'ms' followed by alphabets)."
+            Write-Verbose "Err: $errorMessage"
+            throw $errorMessage
+        }
+        Write-Verbose "Module folder '$($folder.FullName)' follows naming convention."
+        
+        $versionFolders = Get-ChildItem -Path $folder.FullName -Directory
+        $filesUnderVersionFolderLevel = Get-ChildItem -Path $folder.FullName -File
+        if ($filesUnderVersionFolderLevel) {
+            $errorMessage = "There should be only other version folders in the module folder. Files are not allowed."
+            Write-Verbose "Err: $errorMessage"
+            throw $errorMessage
+        }
+        if ($versionFolders.Count -eq 0) {
+            $errorMessage = "Module folder '$($folder.FullName)' has no version subfolders."
+            Write-Verbose "Err: $errorMessage"
+            throw $errorMessage
+        }
+        Write-Verbose "Module folder '$($folder.FullName)' contains $($versionFolders.Count) version folders."
 
-Even before this initiative reached my ears, I had already considered developing an application to facilitate book lending among colleagues. The application would allow users to:
+        foreach ($versionFolder in $versionFolders) {
+            Test-VersionFolder -VersionFolder $versionFolder
+        }
+    }
+}
 
-- **Lenders** register their books with details such as:
+function Test-VersionFolder {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.IO.DirectoryInfo]$VersionFolder
+    )
 
-  - Title, author, genre, and current condition
-  - Lending duration and next availability
-  - Location and aggregated ratings
-  - Cost (for reference)
-  - Current borrower details
+    Write-Verbose "Validating version folder '$($VersionFolder.FullName)'..."
 
-- **Lendees** can browse books based on availability and location, request to borrow, and return the book by the specified due date.
+    if (-not ($VersionFolder.Name -as [version])) {
+        $errorMessage = "Invalid version folder '$($VersionFolder.FullName)'. Folder name must be a valid version number."
+        Write-Verbose "Err: $errorMessage"
+        throw $errorMessage
+    }
+    Write-Verbose "Valid version folder '$($VersionFolder.FullName)'."
 
-- **Lenders** can approve or reject requests based on the borrower’s past ratings.
+    $psd1File = Get-ChildItem -Path $VersionFolder.FullName -Filter *.psd1
+    if (-not $psd1File) {
+        $errorMessage = "Version folder '$($VersionFolder.FullName)' is missing a .psd1 file."
+        Write-Verbose "Err: $errorMessage"
+        throw $errorMessage
+    }
+    Write-Verbose "Found .psd1 file '$($psd1File.FullName)'."
 
-- Upon return, **lenders** can rate borrowers based on book condition, punctuality, and overall responsibility.
+    Test-Psd1Content -Psd1FilePath $psd1File.FullName -ExpectedVersion $VersionFolder.Name
+}
 
-This system can help colleagues develop a sustained reading habit while ensuring accountability within the lending process.
+function Test-Psd1Content {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Psd1FilePath,
 
-## Expanding the Scope: Audiobooks and CSR
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedVersion
+    )
 
-While employees may not always have the time to read physical books during work hours, they often have free listening time—such as during long commutes. This presents an opportunity to expand our initiative to audiobooks.
+    Write-Verbose "Validating .psd1 file content in '$Psd1FilePath'..."
 
-### Challenges and Opportunities:
+    try {
+        $psd1Content = Import-PowerShellDataFile -Path $Psd1FilePath
 
-1. **Physical Books (Current Implementation):**
+        if ($psd1Content.ModuleVersion -ne $ExpectedVersion) {
+            $errorMessage = "Version mismatch in '$Psd1FilePath'. Expected: '$ExpectedVersion', Found: '$($psd1Content.ModuleVersion)'."
+            Write-Verbose "Err: $errorMessage"
+            throw $errorMessage
+        }
+        Write-Verbose "Version in '$Psd1FilePath' matches expected version."
+    }
+    catch {
+        $errorMessage = "Failed to validate .psd1 file at '$Psd1FilePath': $($_.Exception.Message)"
+        Write-Verbose "Err: $errorMessage"
+        Write-Error $errorMessage
+    }
+}
 
-   - This is already in place, with books available in-office.
-   - Scaling up requires an application for tracking books.
+function Test-DestinationFolderStructure {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourcePath,
 
-2. **E-books:**
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationPath
+    )
 
-   - Out of scope due to licensing and budget constraints.
+    Write-Verbose "Validating destination folder structure at '$DestinationPath'..."
 
-3. **Audiobooks:**
+    $sourceFolders = Get-ChildItem -Path $SourcePath -Directory
+    foreach ($folder in $sourceFolders) {
+        foreach ($versionFolder in (Get-ChildItem -Path $folder.FullName -Directory)) {
+            $destinationVersionPath = Join-Path -Path $DestinationPath -ChildPath "$($folder.Name)\$($versionFolder.Name)"
 
-   - While initially out of scope, we can leverage mobile applications to facilitate audiobook recordings.
-   - Employees can record books in a neutral tone, maintaining a clear pace and universally understandable pronunciation.
-   - This initiative can serve multiple purposes:
-     - Employees improve their communication and public speaking skills.
-     - Audiobooks can be made available to colleagues for on-the-go learning.
-     - As a CSR initiative, recorded audiobooks can be donated to charities, especially benefiting individuals with special needs.
+            if (Test-Path -Path $destinationVersionPath) {
+                $errorMessage = "Destination folder '$destinationVersionPath' already exists. Cannot overwrite."
+                Write-Verbose "Err: $errorMessage"
+                throw $errorMessage
+            }
+            Write-Verbose "Destination folder '$destinationVersionPath' does not exist, safe to copy."
+        }
+    }
+}
 
-## Additional Engagement Activities
+function Copy-ModuleVersionFolders {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourcePath,
 
-To further encourage participation, we can introduce:
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationPath
+    )
 
-1. **Monthly Book Talks:**
-   - Employees can present TED-style talks summarizing books they have read, aligned with existing programs like WTS People Program.
-2. **Group Discussions:**
-   - Book-related discussions to enhance comprehension, critical thinking, and collaborative learning.
+    Write-Verbose "Copying module version folders from '$SourcePath' to '$DestinationPath'..."
 
-## Challenges and Considerations
+    $sourceFolders = Get-ChildItem -Path $SourcePath -Directory
+    foreach ($folder in $sourceFolders) {
+        $destinationModulePath = Join-Path -Path $DestinationPath -ChildPath $folder.Name
 
-1. **Company Sponsorship:**
-   - Would the organization be willing to fund books and maintain an official library? If yes, implementation becomes easier.
-   - If not, we may need to continue maintaining the book club as a peer-driven initiative.
+        if (-not (Test-Path -Path $destinationModulePath)) {
+            New-Item -Path $destinationModulePath -ItemType Directory | Out-Null
+            Write-Verbose "Created module folder '$destinationModulePath'."
+        }
 
-2. **Application Development:**
-   - Developing and maintaining the lending application might require additional resources, making it a stretch project.
+        foreach ($versionFolder in (Get-ChildItem -Path $folder.FullName -Directory)) {
+            $destinationVersionPath = Join-Path -Path $destinationModulePath -ChildPath $versionFolder.Name
 
-3. **Legal Considerations for Audiobooks:**
-   - Are there copyright limitations that may prevent us from recording and distributing audiobooks as a CSR initiative?
+            if ($PSCmdlet.ShouldProcess($destinationVersionPath, "Copy version folder")) {
+                Write-Verbose "Copying '$($versionFolder.FullName)' to '$destinationVersionPath'."
+                Copy-Item -Path $versionFolder.FullName -Destination $destinationVersionPath -Recurse -Force
+            }
+        }
+    }
+    Write-Verbose "Copy operation completed."
+}
 
-4. **Book Lending Risks:**
-   - Risk of books being lost, damaged, or not returned on time.
-   - Potential consequences if a borrower leaves the company without returning a book.
+function Remove-SourceFolders {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourcePath
+    )
 
-5. **Audiobook Quality and Safety Control:**
-   - We can't allow voice donations for audiobooks to be released as-is.
-   - Each recording should be limited to 5-minute segments for easier review and approval.
-   - This ensures quality control, maintains a consistent listening experience, and prevents inappropriate or inaccurate content from being distributed.
+    Write-Verbose "Removing source folders in '$SourcePath'..."
 
-## Conclusion
-
-This initiative has the potential to significantly impact employees’ mental well-being, personal growth, and social contribution. By making reading more accessible and integrating audiobook recordings as a CSR initiative, we can build a sustainable program that benefits both individuals and society. With proper planning and support, this initiative can create a long-lasting cultural shift toward mindful content consumption and personal development.
+    foreach ($folder in (Get-ChildItem -Path $SourcePath -Directory)) {
+        try {
+            Remove-Item -Path $folder.FullName -Recurse -Force -ErrorAction Stop
+            Write-Verbose "Successfully removed folder '$($folder.FullName)'."
+        }
+        catch {
+            $errorMessage = "Failed to remove '$($folder.FullName)': $($_.Exception.Message)"
+            Write-Verbose "Err: $errorMessage"
+            Write-Error $errorMessage
+        }
+    }
+    Write-Verbose "Source folders removed successfully."
+}
