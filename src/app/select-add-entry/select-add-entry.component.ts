@@ -24,8 +24,7 @@ import { CommonModule } from '@angular/common';
     }
   ],
   template: `
-    <div class="w-full max-w-xs mx-auto relative">
-      <form [formGroup]="form">
+    <form [formGroup]="form">
         <div class="relative">
           <input
             type="text"
@@ -70,22 +69,21 @@ import { CommonModule } from '@angular/common';
             ➕ Add "{{ form.value.search }}"
           </li>
         </ul>
-      </form>
+    </form>
 
-      <div *ngIf="showPopup"
-           class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-base-100 p-6 rounded shadow-lg w-80">
-          <h3 class="font-bold text-lg mb-4">Add New Option</h3>
-          <p class="mb-2 break-words whitespace-normal">
-            Are you sure you want to add
-            <span class="font-semibold text-neutral break-words">
-              "{{ form.value.search }}"
-            </span>?
-          </p>
-          <div class="flex justify-end space-x-2 mt-4">
-            <button class="btn btn-outline" type="button" (click)="closePopup()">Cancel</button>
-            <button class="btn btn-primary" type="button" (click)="onPopupSubmit()">Add</button>
-          </div>
+    <div *ngIf="showPopup"
+          class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div class="bg-base-100 p-6 rounded shadow-lg w-80">
+        <h3 class="font-bold text-lg mb-4">Add New Option</h3>
+        <p class="mb-2 break-words whitespace-normal">
+          Are you sure you want to add
+          <span class="font-semibold text-neutral break-words">
+            "{{ form.value.search }}"
+          </span>?
+        </p>
+        <div class="flex justify-end space-x-2 mt-4">
+          <button class="btn btn-outline" type="button" (click)="closePopup()">Cancel</button>
+          <button class="btn btn-primary" type="button" (click)="onPopupSubmit()">Add</button>
         </div>
       </div>
     </div>
