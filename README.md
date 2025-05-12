@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef, ClientSideRowModelModule } from 'ag-grid-community';
+import { ColDef } from 'ag-grid-community';
 
 @Component({
   selector: 'app-root',
@@ -13,30 +13,28 @@ import { ColDef, ClientSideRowModelModule } from 'ag-grid-community';
       class="ag-theme-alpine"
       [rowData]="rowData"
       [columnDefs]="columnDefs"
-      [autoGroupColumnDef]="autoGroupColumnDef"
       [groupDisplayType]="'groupRows'"
       [groupDefaultExpanded]="1"
+      [autoGroupColumnDef]="autoGroupColumnDef"
       [animateRows]="true"
     ></ag-grid-angular>
   `
 })
 export class AppComponent {
-  // Column to group by must be hidden
   columnDefs: ColDef[] = [
-    { field: 'make', rowGroup: true, hide: true },
+    { field: 'make', rowGroup: true, hide: true }, // hide the group field column
     { field: 'model' },
     { field: 'price' }
   ];
 
-  // This controls how the group column displays
   autoGroupColumnDef: ColDef = {
-    headerName: 'Make Group',
+    headerName: 'Make',
+    field: 'make',
     cellRendererParams: {
       suppressCount: false
     }
   };
 
-  // Sample data
   rowData = [
     { make: 'Toyota', model: 'Celica', price: 35000 },
     { make: 'Toyota', model: 'Corolla', price: 25000 },
@@ -44,7 +42,4 @@ export class AppComponent {
     { make: 'Ford', model: 'Focus', price: 29000 },
     { make: 'Porsche', model: 'Boxster', price: 72000 }
   ];
-
-  // Module - required for grouping
-  modules = [ClientSideRowModelModule];
 }
