@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef } from 'ag-grid-community';
-import { ClientSideRowModelModule } from 'ag-grid-community';
+import { ColDef, ClientSideRowModelModule } from 'ag-grid-community';
 
 @Component({
   selector: 'app-root',
@@ -14,19 +13,26 @@ import { ClientSideRowModelModule } from 'ag-grid-community';
       class="ag-theme-alpine"
       [rowData]="rowData"
       [columnDefs]="columnDefs"
-      [modules]="modules"
+      [autoGroupColumnDef]="autoGroupColumnDef"
       [groupDisplayType]="'groupRows'"
+      [modules]="modules"
       [animateRows]="true"
-      [pagination]="true"
     ></ag-grid-angular>
   `
 })
 export class AppComponent {
   columnDefs: ColDef[] = [
-    { headerName: 'Make', field: 'make', rowGroup: true },
-    { headerName: 'Model', field: 'model' },
-    { headerName: 'Price', field: 'price' }
+    { field: 'make', rowGroup: true },
+    { field: 'model' },
+    { field: 'price' }
   ];
+
+  autoGroupColumnDef: ColDef = {
+    headerName: 'Group',
+    cellRendererParams: {
+      suppressCount: false
+    }
+  };
 
   rowData = [
     { make: 'Toyota', model: 'Celica', price: 35000 },
