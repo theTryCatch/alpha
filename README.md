@@ -15,31 +15,36 @@ import { ColDef, ClientSideRowModelModule } from 'ag-grid-community';
       [columnDefs]="columnDefs"
       [autoGroupColumnDef]="autoGroupColumnDef"
       [groupDisplayType]="'groupRows'"
-      [modules]="modules"
+      [groupDefaultExpanded]="1"
       [animateRows]="true"
     ></ag-grid-angular>
   `
 })
 export class AppComponent {
+  // Column to group by must be hidden
   columnDefs: ColDef[] = [
-    { field: 'make', rowGroup: true },
+    { field: 'make', rowGroup: true, hide: true },
     { field: 'model' },
     { field: 'price' }
   ];
 
+  // This controls how the group column displays
   autoGroupColumnDef: ColDef = {
-    headerName: 'Group',
+    headerName: 'Make Group',
     cellRendererParams: {
       suppressCount: false
     }
   };
 
+  // Sample data
   rowData = [
     { make: 'Toyota', model: 'Celica', price: 35000 },
+    { make: 'Toyota', model: 'Corolla', price: 25000 },
     { make: 'Ford', model: 'Mondeo', price: 32000 },
     { make: 'Ford', model: 'Focus', price: 29000 },
     { make: 'Porsche', model: 'Boxster', price: 72000 }
   ];
 
+  // Module - required for grouping
   modules = [ClientSideRowModelModule];
 }
