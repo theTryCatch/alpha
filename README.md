@@ -2,7 +2,9 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
-import { ClientSideRowModelModule, RowGroupingModule } from 'ag-grid-community';
+
+// ✅ Importing ag-grid-enterprise enables enterprise features
+import 'ag-grid-enterprise';
 
 @Component({
   selector: 'app-root',
@@ -10,30 +12,29 @@ import { ClientSideRowModelModule, RowGroupingModule } from 'ag-grid-community';
   imports: [CommonModule, AgGridAngular],
   template: `
     <ag-grid-angular
-      style="width: 600px; height: 400px;"
+      style="width: 800px; height: 500px;"
       class="ag-theme-alpine"
       [rowData]="rowData"
       [columnDefs]="columnDefs"
-      [autoGroupColumnDef]="autoGroupColumnDef"
-      [groupDisplayType]="'groupRows'"
-      [groupDefaultExpanded]="1"
-      [modules]="modules"
+      [defaultColDef]="defaultColDef"
       [animateRows]="true"
+      [rowGroupPanelShow]="'always'"
+      [groupIncludeFooter]="true"
+      [groupIncludeTotalFooter]="true"
     ></ag-grid-angular>
   `
 })
 export class AppComponent {
   columnDefs: ColDef[] = [
-    { field: 'make', rowGroup: true, hide: true },
+    { field: 'make', rowGroup: true, enableRowGroup: true },
     { field: 'model' },
-    { field: 'price' }
+    { field: 'price', aggFunc: 'sum' }
   ];
 
-  autoGroupColumnDef: ColDef = {
-    headerName: 'Make Group',
-    cellRendererParams: {
-      suppressCount: false
-    }
+  defaultColDef: ColDef = {
+    sortable: true,
+    filter: true,
+    resizable: true
   };
 
   rowData = [
@@ -43,6 +44,4 @@ export class AppComponent {
     { make: 'Ford', model: 'Focus', price: 29000 },
     { make: 'Porsche', model: 'Boxster', price: 72000 }
   ];
-
-  modules = [ClientSideRowModelModule, RowGroupingModule]; // ✅ Important for v33.2.4
 }
