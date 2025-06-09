@@ -1,28 +1,64 @@
-# Context
+:root {
+  /* Color Palette */
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #f8f9fa;
+  --color-bg-muted: #e9ecef;
+  --color-text-primary: #212529;
+  --color-text-secondary: #1e293b;
+  --color-accent: #007bff;
+  --color-active: #1d4ed8;
+  --color-border: #dee2e6;
+  --color-border-muted: #cbd5e0;
+  --color-disabled: #9ca3af;
+  --color-shadow: rgba(0, 0, 0, 0.15);
+  --color-shadow-light: rgba(0, 0, 0, 0.1);
+}
 
-Our team has been actively automating processes and developing solutions to address various operational needs, while also enhancing internal tooling for production infrastructure management. Over time, we have observed that many of these efforts—both within our team and across other groups—tend to solve similar problems in slightly different ways.
+igc-dockmanager {
+  /* General */
+  --igc-background-color: var(--color-bg-light);
+  --igc-accent-color: var(--color-accent);
+  --igc-active-color: var(--color-text-primary);
+  --igc-border-color: var(--color-border);
+  --igc-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --igc-dock-background: var(--color-bg-dark);
+  --igc-dock-text: var(--color-text-primary);
 
-Common functionalities such as retrieving user details from **Active Directory (AD) / LDAP**, performing **CRUD operations on ServiceNow**, and executing **Splunk searches** frequently appear in different automation scripts and applications. These recurring patterns present an opportunity to streamline efforts and improve consistency.
+  /* Pane & Content */
+  --igc-pane-header-background: var(--color-bg-muted);
+  --igc-pane-header-text: var(--color-text-primary);
+  --igc-pane-content-background: var(--color-bg-light);
+  --igc-pane-content-text: var(--color-text-primary);
 
-As we continue building modern web applications, these overlaps become more noticeable. Implementing the same functionality in multiple places not only increases maintenance efforts but also makes it harder to scale and evolve solutions efficiently. Without a shared integration layer, each use case often requires its own version of common logic.
+  /* Tabs */
+  --igc-tab-text: var(--color-text-primary);
+  --igc-tab-background: var(--color-border-muted);
+  --igc-tab-border-color: var(--color-border-muted);
+  --igc-tab-text-active: var(--color-active);
+  --igc-tab-background-active: #e0f2fe;
+  --igc-tab-border-color-active: var(--color-active);
 
-# Proposed Solution
+  /* Pinned Headers & Splitters */
+  --igc-pinned-header-background: #f1f5f9;
+  --igc-pinned-header-text: var(--color-text-secondary);
+  --igc-splitter-background: var(--color-border-muted);
+  --igc-splitter-handle: #64748b;
 
-To address these challenges, we propose the development of **WintoolsAPI**—a **microservices-based solution** that offers a set of **reusable APIs** for commonly needed IT operations.
+  /* Joystick & Floating Panes */
+  --igc-flyout-shadow-color: var(--color-shadow);
+  --igc-floating-pane-border-color: var(--color-border-muted);
+  --igc-joystick-background: var(--color-border-muted);
+  --igc-joystick-border-color: var(--color-border-muted);
+  --igc-joystick-icon-color: var(--color-text-secondary);
+  --igc-joystick-background-active: #bfdbfe;
+  --igc-joystick-icon-color-active: var(--color-active);
 
-## Key Highlights
-
-- **Centralized API Ecosystem**  
-  A single point of access for functionalities like AD/LDAP discovery, ServiceNow CRUD operations, Splunk searches, etc.
-
-- **Reusable Microservices Architecture**  
-  Modular services that can be consumed by both standalone automation scripts and web applications.
-
-- **Consistent & Standardized Interfaces**  
-  Ensuring uniform behavior and output across all consuming applications.
-
-- **Improved Developer Efficiency**  
-  Teams can focus on business-specific logic rather than re-implementing common operations.
-
-- **Scalability & Maintainability**  
-  Simplified updates and enhancements, as changes are made centrally and propagated to all consumers.
+  /* Buttons & Context Menus */
+  --igc-button-text: var(--color-text-secondary);
+  --igc-context-menu-background: var(--color-bg-light);
+  --igc-context-menu-background-active: #e0f2fe;
+  --igc-context-menu-color: var(--color-text-secondary);
+  --igc-context-menu-color-active: var(--color-active);
+  --igc-drop-shadow-background: var(--color-shadow-light);
+  --igc-disabled-color: var(--color-disabled);
+}
