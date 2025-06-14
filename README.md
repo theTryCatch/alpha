@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { from, Observable, Subject, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, delay, mergeMap, retryWhen, take, tap, timeout } from 'rxjs/operators';
+import { from, Observable, Subject, throwError, BehaviorSubject, timer } from 'rxjs';
+import { catchError, mergeMap, tap, timeout, retry } from 'rxjs/operators';
 
 export interface ApiRequest {
   url: string;
@@ -70,12 +70,22 @@ export class ApiService {
             const isTimeout = err.name === 'TimeoutError';
             const status = isTimeout ? 'timeout' : 'error';
             this.apiStatusSubject.next({ request: req, status, error: err });
-            isTimeout ? progress.timeout++ : progress.error++;
+            if (isTimeout) {
+              progress.timeout++;
+            } else {
+              progress.error++;
+            }
             return throwError(() => err);
           }),
-          tap(() => {
-            progress.completed++;
-            this.progressSubject.next({ ...progress });
+          tap({
+            next: () => {
+              progress.completed++;
+              this.progressSubject.next({ ...progress });
+            },
+            error: () => {
+              progress.completed++;
+              this.progressSubject.next({ ...progress });
+            }
           })
         ),
         concurrency
@@ -105,7 +115,10 @@ export class ApiService {
 
     if (req.retryCount && req.retryDelayMs) {
       httpCall$ = httpCall$.pipe(
-        retryWhen(errors => errors.pipe(delay(req.retryDelayMs), take(req.retryCount)))
+        retry({
+          count: req.retryCount,
+          delay: () => timer(req.retryDelayMs)
+        })
       );
     }
 
