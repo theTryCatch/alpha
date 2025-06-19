@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { from, Observable, Subject, throwError, BehaviorSubject, timer } from 'rxjs';
-import { catchError, mergeMap, tap, timeout, retry } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject, throwError, from, of, timer } from 'rxjs';
+import { catchError, mergeMap, tap, timeout, retry, switchMap } from 'rxjs/operators';
 
-export interface ApiRequest {
+export interface IFTUIApiRequest {
   url: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   body?: any;
@@ -13,69 +13,104 @@ export interface ApiRequest {
   retryCount?: number;
   retryDelayMs?: number;
   tag?: string;
+  returnModel?: new (...args: any[]) => any;
 }
 
-export interface ApiResponseEvent {
-  request: ApiRequest;
+export interface IFTUIApiResponseEvent<T = any> {
+  request: IFTUIApiRequest;
   status: 'success' | 'timeout' | 'error';
-  data?: any;
+  data?: T;
   error?: any;
 }
 
-export interface ApiProgress {
+export interface IFTUIApiProgress {
   total: number;
   completed: number;
   success: number;
   timeout: number;
   error: number;
+  tags: {
+    success: string[];
+    timeout: string[];
+    error: string[];
+  };
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ApiService {
-  private apiStatusSubject = new Subject<ApiResponseEvent>();
+  private requestBatch$ = new Subject<IFTUIApiRequest[]>();
+  private apiStatusSubject = new Subject<IFTUIApiResponseEvent<any>>();
   public apiStatus$ = this.apiStatusSubject.asObservable();
 
-  private progressSubject = new BehaviorSubject<ApiProgress>({
+  private progressSubject = new BehaviorSubject<IFTUIApiProgress>({
     total: 0,
     completed: 0,
     success: 0,
     timeout: 0,
-    error: 0
+    error: 0,
+    tags: { success: [], timeout: [], error: [] }
   });
   public progress$ = this.progressSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.requestBatch$
+      .pipe(
+        switchMap(requests => this.processBatch(requests))
+      )
+      .subscribe(); // fire and forget
+  }
 
-  fetchAllAsync(requests: ApiRequest[], concurrency: number = 5): void {
+  /** Call this when a new batch of requests is needed */
+  fetchAllAsync(requests: IFTUIApiRequest[], concurrency: number = 5): void {
+    this.requestBatch$.next(requests.map(r => ({ ...r, concurrency })));
+  }
+
+  /** Internal batch processor */
+  private processBatch(requests: IFTUIApiRequest[]): Observable<any> {
     const total = requests.length;
-    const progress: ApiProgress = {
+    const progress: IFTUIApiProgress = {
       total,
       completed: 0,
       success: 0,
       timeout: 0,
-      error: 0
+      error: 0,
+      tags: { success: [], timeout: [], error: [] }
     };
     this.progressSubject.next(progress);
 
-    from(requests).pipe(
+    return from(requests).pipe(
       mergeMap(req =>
         this.makeRequest(req).pipe(
           tap(data => {
-            this.apiStatusSubject.next({ request: req, status: 'success', data });
+            const result = req.returnModel ? new req.returnModel(data) : data;
+            this.apiStatusSubject.next({ request: req, status: 'success', data: result });
             progress.success++;
+            if (req.tag) progress.tags.success.push(req.tag);
           }),
           catchError(err => {
             const isTimeout = err.name === 'TimeoutError';
             const status = isTimeout ? 'timeout' : 'error';
-            this.apiStatusSubject.next({ request: req, status, error: err });
+
+            const errorPayload = {
+              message: err.message || 'Unknown error',
+              name: err.name || '',
+              status: err.status || 0,
+              statusText: err.statusText || '',
+              error: err.error || null,
+              originalError: err
+            };
+
+            this.apiStatusSubject.next({ request: req, status, error: errorPayload });
+
             if (isTimeout) {
               progress.timeout++;
+              if (req.tag) progress.tags.timeout.push(req.tag);
             } else {
               progress.error++;
+              if (req.tag) progress.tags.error.push(req.tag);
             }
-            return throwError(() => err);
+
+            return of(null);
           }),
           tap({
             next: () => {
@@ -88,12 +123,12 @@ export class ApiService {
             }
           })
         ),
-        concurrency
+        req.concurrency ?? 5 // optional per-request concurrency fallback
       )
-    ).subscribe();
+    );
   }
 
-  private makeRequest(req: ApiRequest): Observable<any> {
+  private makeRequest(req: IFTUIApiRequest): Observable<any> {
     const options = {
       headers: new HttpHeaders(req.headers || {}),
       params: new HttpParams({ fromObject: req.params || {} })
