@@ -96,3 +96,77 @@ export class ActionMenuRenderer implements ICellRendererAngularComp {
     this.params.context.componentParent.onDeleteRow(this.params.data);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Component } from '@angular/core';
+import { ICellRendererAngularComp } from 'ag-grid-angular';
+
+@Component({
+  selector: 'app-action-menu-renderer',
+  standalone: true,
+  template: `
+    <div class="relative" (click)="stopPropagation($event)">
+      <button (click)="toggleMenu($event)">⋮</button>
+
+      <ul *ngIf="menuOpen" class="absolute right-0 top-full bg-white border rounded shadow w-24 z-50">
+        <li class="p-2 hover:bg-gray-100 cursor-pointer" (click)="edit()">Edit</li>
+        <li class="p-2 hover:bg-gray-100 cursor-pointer" (click)="delete()">Delete</li>
+      </ul>
+    </div>
+  `,
+  styles: []
+})
+export class ActionMenuRendererComponent implements ICellRendererAngularComp {
+  params: any;
+  menuOpen = false;
+
+  agInit(params: any): void {
+    this.params = params;
+    document.addEventListener('click', this.onOutsideClick);
+  }
+
+  refresh(): boolean {
+    return false;
+  }
+
+  toggleMenu(event: MouseEvent) {
+    event.stopPropagation();
+    this.menuOpen = !this.menuOpen;
+  }
+
+  edit() {
+    this.menuOpen = false;
+    this.params.context.componentParent.onEdit(this.params.data);
+  }
+
+  delete() {
+    this.menuOpen = false;
+    this.params.context.componentParent.onDelete(this.params.data);
+  }
+
+  stopPropagation(event: MouseEvent) {
+    event.stopPropagation();
+  }
+
+  onOutsideClick = () => {
+    this.menuOpen = false;
+  };
+
+  // Cleanup
+  destroy() {
+    document.removeEventListener('click', this.onOutsideClick);
+  }
+}
