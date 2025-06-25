@@ -170,3 +170,46 @@ export class ActionMenuRendererComponent implements ICellRendererAngularComp {
     document.removeEventListener('click', this.onOutsideClick);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { ActionReducer, createAction, MetaReducer, Store } from '@ngrx/store';
+
+// Define the reset action
+export const resetStore = createAction('[Store] Reset');
+
+// Array of action types that should NOT trigger store reset (even if dispatched after reset)
+const EXCLUDED_ACTION_TYPES = [
+  '[User] Login Success',
+  '[Settings] Persist',
+  // Add more action types you want to preserve
+];
+
+// Meta-reducer with exclusion logic
+export const resetMetaReducer: (reducer: ActionReducer<any>) => ActionReducer<any> =
+  (reducer) => (state, action) => {
+    // Only reset if it's the reset action and NOT in excluded list
+    if (action.type === resetStore.type && !EXCLUDED_ACTION_TYPES.includes(action.type)) {
+      state = undefined;
+    }
+    return reducer(state, action);
+  };
+
+// Export as part of metaReducers array
+export const metaReducers: MetaReducer<any>[] = [resetMetaReducer];
+
+// Helper to dispatch the reset action
+export const resetNgrxReduxStore = (store: Store): void => store.dispatch(resetStore());
