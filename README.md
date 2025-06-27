@@ -1,101 +1,45 @@
-import { Component } from '@angular/core';
-import { ICellRendererAngularComp } from 'ag-grid-angular';
+Let’s start with the ‘why’.
 
-@Component({
-  selector: 'app-root',
-  template: `
-    <ag-grid-angular
-      style="width: 600px; height: 400px;"
-      class="ag-theme-alpine"
-      [rowData]="rowData"
-      [columnDefs]="columnDefs"
-      [frameworkComponents]="frameworkComponents"
-      [context]="{ componentParent: this }"
-      rowSelection="single"
-    ></ag-grid-angular>
-  `
-})
-export class AppComponent {
-  rowData = [
-    { name: 'Alice', age: 30 },
-    { name: 'Bob', age: 25 }
-  ];
+Over time, the original Agent Assist started showing signs of strain — not because it was poorly designed, but because our needs evolved.
 
-  columnDefs = [
-    { field: 'name' },
-    { field: 'age' },
-    {
-      headerName: '',
-      cellRenderer: 'actionMenuRenderer',
-      width: 60,
-      suppressMenu: true,
-      suppressSorting: true
-    }
-  ];
+A few key pain points began emerging:
 
-  frameworkComponents = {
-    actionMenuRenderer: ActionMenuRenderer
-  };
+The control sizing, while modern, became too bulky for the level of detail we need to display — creating a bottleneck in usable space.
 
-  onEditRow(data: any) {
-    alert('Edit: ' + JSON.stringify(data));
-  }
+The layout wasn’t fully responsive — which caused overlaps and display issues across devices and resolutions.
 
-  onDeleteRow(data: any) {
-    alert('Delete: ' + JSON.stringify(data));
-  }
-}
+Theme support was minimal — making it hard to adopt dark mode or meet accessibility standards.
 
-@Component({
-  selector: 'app-action-menu-renderer',
-  template: `
-    <div style="position: relative;">
-      <button (click)="toggleMenu($event)">⋮</button>
-      <ul *ngIf="menuOpen" style="
-        position: absolute;
-        right: 0;
-        top: 100%;
-        background: white;
-        border: 1px solid #ccc;
-        list-style: none;
-        padding: 0;
-        margin: 4px 0;
-        width: 100px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      ">
-        <li style="padding: 6px; cursor: pointer;" (click)="edit()">Edit</li>
-        <li style="padding: 6px; cursor: pointer;" (click)="delete()">Delete</li>
-      </ul>
-    </div>
-  `
-})
-export class ActionMenuRenderer implements ICellRendererAngularComp {
-  public params: any;
-  public menuOpen = false;
+There was duplication of content — such as summary views and detail pages repeating the same data.
 
-  agInit(params: any): void {
-    this.params = params;
-  }
+Dependency freshness was around 55%, making updates, onboarding, and integrations more difficult.
 
-  refresh(): boolean {
-    return false;
-  }
+Integrating workflows like KB automation wasn’t smooth due to architectural constraints.
 
-  toggleMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.menuOpen = !this.menuOpen;
-  }
+And finally, the app wasn’t truly asynchronous. Simple actions like searching a user would freeze the screen until all dependencies loaded — which negatively impacted the experience.”
 
-  edit(): void {
-    this.menuOpen = false;
-    this.params.context.componentParent.onEditRow(this.params.data);
-  }
 
-  delete(): void {
-    this.menuOpen = false;
-    this.params.context.componentParent.onDeleteRow(this.params.data);
-  }
-}
+
+
+
+“Now, let’s take a quick look at the new Agent Assist.
+As I walk through this, keep an eye out for the docked layout, improved responsiveness, and the new ways we’re surfacing actions and navigation options.
+
+
+
+
+
+Let’s break down what’s new in this version:
+
+🔹 Docking Capabilities – With Igx Dock Manager, users can arrange their workspace to match their workflow — whether it’s split panes, tabs, or floating windows.
+
+🔹 Flexible Tables – Powered by AG Grid, tables now support sorting, filtering, pagination, exports, and much more — all built for performance and clarity.
+
+🔹 Themes Beyond Light and Dark – Thanks to DaisyUI’s latest version, users can pick from a rich set of themes or tailor their own for accessibility and preference.
+
+🔹 Smart Context Menus – Right-click actions on table rows let agents quickly remove assistance, export data, and more — without navigating away.
+
+🔹 Contextual Navigation – Click behavior is now field-aware. For example, clicking a User ID in GMC opens that profile in GMC; clicking the user’s photo might open their record in N-Slash. The app understands where you are and what you want to do.”
 
 
 
@@ -103,102 +47,22 @@ export class ActionMenuRenderer implements ICellRendererAngularComp {
 
 
 
+This release lays the foundation for a lot more.
+
+🔸 ServiceNow Ticket Handling – We’re integrating ticket workflows directly into the app — reducing context switching and improving response time.
+
+🔸 Workflow Integrations – We’re building native support for KB and automation pipelines, making it easier to embed and track operational tasks.
+
+🔸 Brain & MBrain Integrations – With APIs coming online, we’ll soon begin surfacing contextual intelligence and automation suggestions directly in the interface.
+
+🔸 Personalization – Agents will soon be able to save layouts, color schemes, and workspace configurations — making the tool feel personal, efficient, and consistent between sessions.
 
 
 
 
 
 
+To sum it up — Agent Assist 2.0 isn’t a redesign for design’s sake.
+It’s a response to real needs, shaped by experience, and built for growth.
 
-
-import { Component } from '@angular/core';
-import { ICellRendererAngularComp } from 'ag-grid-angular';
-
-@Component({
-  selector: 'app-action-menu-renderer',
-  standalone: true,
-  template: `
-    <div class="relative" (click)="stopPropagation($event)">
-      <button (click)="toggleMenu($event)">⋮</button>
-
-      <ul *ngIf="menuOpen" class="absolute right-0 top-full bg-white border rounded shadow w-24 z-50">
-        <li class="p-2 hover:bg-gray-100 cursor-pointer" (click)="edit()">Edit</li>
-        <li class="p-2 hover:bg-gray-100 cursor-pointer" (click)="delete()">Delete</li>
-      </ul>
-    </div>
-  `,
-  styles: []
-})
-export class ActionMenuRendererComponent implements ICellRendererAngularComp {
-  params: any;
-  menuOpen = false;
-
-  agInit(params: any): void {
-    this.params = params;
-    document.addEventListener('click', this.onOutsideClick);
-  }
-
-  refresh(): boolean {
-    return false;
-  }
-
-  toggleMenu(event: MouseEvent) {
-    event.stopPropagation();
-    this.menuOpen = !this.menuOpen;
-  }
-
-  edit() {
-    this.menuOpen = false;
-    this.params.context.componentParent.onEdit(this.params.data);
-  }
-
-  delete() {
-    this.menuOpen = false;
-    this.params.context.componentParent.onDelete(this.params.data);
-  }
-
-  stopPropagation(event: MouseEvent) {
-    event.stopPropagation();
-  }
-
-  onOutsideClick = () => {
-    this.menuOpen = false;
-  };
-
-  // Cleanup
-  destroy() {
-    document.removeEventListener('click', this.onOutsideClick);
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { ActionReducer, createAction, MetaReducer, Store } from '@ngrx/store';
-
-export const resetStore = createAction('[Store] Reset');
-
-export function createResetMetaReducer(excludedSlices: string[]): MetaReducer<any> {
-  return (reducer: ActionReducer<any>): ActionReducer<any> => {
-    return (state, action) => {
-      if (action.type === resetStore.type) {
-        const preservedState: any = {};
-        for (const key of excludedSlices) {
-          preservedState[key] = state?.[key];
-        }
-        return reducer(preservedState, action);
-      }
-      return reducer(state, action);
-    };
-  };
-}
+Thank you again for your time — I’m happy to take questions or feedback now.”
