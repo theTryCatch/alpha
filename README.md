@@ -1,159 +1,94 @@
-function ConvertTo-Pem {
+function Convert-JwkToPkcs1Pem {
     param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [pscustomobject]$Jwk,
-
-        [ValidateSet("PKCS1")]
-        [string]$Format = "PKCS1",
-
-        [string]$OutputPath = $null
+        [string]$n,
+        [string]$e,
+        [string]$d,
+        [string]$p,
+        [string]$q,
+        [string]$dp,
+        [string]$dq,
+        [string]$qi
     )
 
-    begin {
-        function From-Base64Url([string]$str) {
-            $s = $str.Replace('-', '+').Replace('_', '/')
-            switch ($s.Length % 4) {
-                2 { $s += '==' }
-                3 { $s += '=' }
-            }
-            return [Convert]::FromBase64String($s)
+    # Helper: Base64Url decode
+    function From-Base64Url($str) {
+        $str = $str.Replace('-', '+').Replace('_', '/')
+        switch ($str.Length % 4) {
+            2 { $str += '==' }
+            3 { $str += '=' }
         }
-
-        function Encode-Integer([byte[]]$bytes) {
-            if ($bytes[0] -gt 0x7F) { $bytes = ,0x00 + $bytes }
-            $len = $bytes.Length
-            $lenBytes = if ($len -lt 128) { ,$len } else {
-                $tmp = [BitConverter]::GetBytes([UInt32]$len)
-                $tmp = $tmp[0..([Array]::IndexOf($tmp, ($tmp | Where-Object { $_ -ne 0 })[0]))]
-    
-            return ,0x02 + $lenBytes + $bytes
-        }
-
-        function Encode-Sequence([byte[][]]$elements) {
-            $body = @(); foreach ($el in $elements) { $body += $el }
-            $len = $body.Length
-            $lenBytes = if ($len -lt 128) { ,$len } else {
-                $tmp = [BitConverter]::GetBytes([UInt32]$len)
-                $tmp = $tmp[0..([Array]::IndexOf($tmp, ($tmp | Where-Object { $_ -ne 0 })[0]))]
-                ,(0x80 -bor $tmp.Length) + $tmp
-            }
-            return ,0x30 + $lenBytes + $body
-        }
+        return [Convert]::FromBase64String($str)
     }
 
-    process {
-        if ($Format -eq "PKCS1") {
-            $seq = Encode-Sequence @(
-                (Encode-Integer @(0))                  # version
-                (Encode-Integer (From-Base64Url $Jwk.n))
-                (Encode-Integer (From-Base64Url $Jwk.e))
-                (Encode-Integer (From-Base64Url $Jwk.d))
-                (Encode-Integer (From-Base64Url $Jwk.p))
-                (Encode-Integer (From-Base64Url $Jwk.q))
-                (Encode-Integer (From-Base64Url $Jwk.dp))
-                (Encode-Integer (From-Base64Url $Jwk.dq))
-                (Encode-Integer (From-Base64Url $Jwk.qi))
-            )
+    # Convert JWK params
+    $nBytes  = From-Base64Url $n
+    $eBytes  = From-Base64Url $e
+    $dBytes  = From-Base64Url $d
+    $pBytes  = From-Base64Url $p
+    $qBytes  = From-Base64Url $q
+    $dpBytes = From-Base64Url $dp
+    $dqBytes = From-Base64Url $dq
+    $qiBytes = From-Base64Url $qi
 
-            $pemBody = [Convert]::ToBase64String($seq, 'InsertLineBreaks')
-            $pem = "-----BEGIN RSA PRIVATE KEY-----`n$pemBody`n-----END RSA PRIVATE KEY-----"
+    # Encode ASN.1 INTEGER
+    function Encode-Integer($bytes) {
+        if ($bytes[0] -gt 0x7F) {
+            $bytes = ,0x00 + $bytes
         }
-
-
-
-        
-
-        if ($OutputPath) {
-            Set-Content -Path $OutputPath -Value $pem
-            return $OutputPath
+        $len = $bytes.Length
+        if ($len -lt 128) {
+            $lenBytes = [byte]$len
         } else {
-            return $pem
+            $lenBytes = @()
+            $tmp = $len
+            while ($tmp -gt 0) {
+                $lenBytes = ,([byte]($tmp -band 0xFF)) + $lenBytes
+                $tmp = $tmp -shr 8
+            }
+            $lenBytes = ,([byte](0x80 -bor $lenBytes.Length)) + $lenBytes
         }
+        return ,0x02 + $lenBytes + $bytes
     }
-}
 
+    # Encode ASN.1 SEQUENCE
+    function Encode-Sequence($elements) {
+        $body = $elements -join '' | ForEach-Object { }
+        $body = -join ($elements | ForEach-Object { [System.Text.Encoding]::ASCII.GetString($_) })
+    }
 
-
-
-
-
-
-
-
-function ConvertTo-Pem {
-    param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [pscustomobject]$Jwk,
-
-        [ValidateSet("PKCS1")]
-        [string]$Format = "PKCS1",
-
-        [string]$OutputPath = $null
+    # Build PKCS#1 structure (ASN.1 DER SEQUENCE of 9 integers)
+    $ints = @(
+        Encode-Integer @(0)             # version
+        (Encode-Integer $nBytes)
+        (Encode-Integer $eBytes)
+        (Encode-Integer $dBytes)
+        (Encode-Integer $pBytes)
+        (Encode-Integer $qBytes)
+        (Encode-Integer $dpBytes)
+        (Encode-Integer $dqBytes)
+        (Encode-Integer $qiBytes)
     )
 
-    begin {
-        function From-Base64Url([string]$str) {
-            $s = $str.Replace('-', '+').Replace('_', '/')
-            switch ($s.Length % 4) {
-                2 { $s += '==' }
-                3 { $s += '=' }
-            }
-            return [Convert]::FromBase64String($s)
+    $body = @()
+    foreach ($i in $ints) { $body += $i }
+    $len = $body.Length
+    if ($len -lt 128) {
+        $lenBytes = [byte]$len
+    } else {
+        $lenBytes = @()
+        $tmp = $len
+        while ($tmp -gt 0) {
+            $lenBytes = ,([byte]($tmp -band 0xFF)) + $lenBytes
+            $tmp = $tmp -shr 8
         }
-
-        function Encode-Integer([byte[]]$bytes) {
-            if ($bytes[0] -gt 0x7F) { $bytes = ,0x00 + $bytes }
-            $len = $bytes.Length
-            $lenBytes = if ($len -lt 128) { ,$len } else {
-                $tmp = [BitConverter]::GetBytes([UInt32]$len)
-                $tmp = $tmp[0..([Array]::IndexOf($tmp, ($tmp | Where-Object { $_ -ne 0 })[0]))]
-                ,(0x80 -bor $tmp.Length) + $tmp
-            }
-            return ,0x02 + $lenBytes + $bytes
-        }
-
-        function Encode-Sequence([byte[][]]$elements) {
-            $body = @(); foreach ($el in $elements) { $body += $el }
-            $len = $body.Length
-            $lenBytes = if ($len -lt 128) { ,$len } else {
-                $tmp = [BitConverter]::GetBytes([UInt32]$len)
-                $tmp = $tmp[0..([Array]::IndexOf($tmp, ($tmp | Where-Object { $_ -ne 0 })[0]))]
-                ,(0x80 -bor $tmp.Length) + $tmp
-            }
-            return ,0x30 + $lenBytes + $body
-        }
-
-        function Wrap-Base64([string]$b64, [int]$width = 64) {
-            return ($b64.ToCharArray() -split "(.{$width})" | Where-Object { $_ -ne "" }) -join "`n"
-        }
+        $lenBytes = ,([byte](0x80 -bor $lenBytes.Length)) + $lenBytes
     }
+    $der = ,0x30 + $lenBytes + $body
 
-    process {
-        if ($Format -eq "PKCS1") {
-            $seq = Encode-Sequence @(
-                (Encode-Integer @(0))                  # version
-                (Encode-Integer (From-Base64Url $Jwk.n))
-                (Encode-Integer (From-Base64Url $Jwk.e))
-                (Encode-Integer (From-Base64Url $Jwk.d))
-                (Encode-Integer (From-Base64Url $Jwk.p))
-                (Encode-Integer (From-Base64Url $Jwk.q))
-                (Encode-Integer (From-Base64Url $Jwk.dp))
-                (Encode-Integer (From-Base64Url $Jwk.dq))
-                (Encode-Integer (From-Base64Url $Jwk.qi))
-            )
+    # Base64 encode with 64-char wrapping
+    $b64 = [Convert]::ToBase64String($der)
+    $wrapped = ($b64.ToCharArray() -split "(.{1,64})" | Where-Object {$_ -ne ""}) -join "`n"
 
-            $pemBody = [Convert]::ToBase64String($seq)
-            $pemBody = Wrap-Base64 $pemBody 64
-
-            $pem = "-----BEGIN RSA PRIVATE KEY-----`n$pemBody`n-----END RSA PRIVATE KEY-----"
-        }
-
-        if ($OutputPath) {
-            Set-Content -Path $OutputPath -Value $pem
-            return $OutputPath
-        } else {
-            return $pem
-        }
-    }
+    $pem = "-----BEGIN RSA PRIVATE KEY-----`n$wrapped`n-----END RSA PRIVATE KEY-----"
+    return $pem
 }
-
