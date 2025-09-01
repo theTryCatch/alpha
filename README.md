@@ -1,94 +1,71 @@
-function Convert-JwkToPkcs1Pem {
+function ConvertTo-Pem {
     param(
-        [string]$n,
-        [string]$e,
-        [string]$d,
-        [string]$p,
-        [string]$q,
-        [string]$dp,
-        [string]$dq,
-        [string]$qi
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [pscustomobject]$Jwk,
+
+        [ValidateSet("PKCS1")]
+        [string]$Format = "PKCS1",
+
+        [string]$OutputPath = $null
     )
 
-    # Helper: Base64Url decode
-    function From-Base64Url($str) {
-        $str = $str.Replace('-', '+').Replace('_', '/')
-        switch ($str.Length % 4) {
-            2 { $str += '==' }
-            3 { $str += '=' }
-        }
-        return [Convert]::FromBase64String($str)
-    }
-
-    # Convert JWK params
-    $nBytes  = From-Base64Url $n
-    $eBytes  = From-Base64Url $e
-    $dBytes  = From-Base64Url $d
-    $pBytes  = From-Base64Url $p
-    $qBytes  = From-Base64Url $q
-    $dpBytes = From-Base64Url $dp
-    $dqBytes = From-Base64Url $dq
-    $qiBytes = From-Base64Url $qi
-
-    # Encode ASN.1 INTEGER
-    function Encode-Integer($bytes) {
-        if ($bytes[0] -gt 0x7F) {
-            $bytes = ,0x00 + $bytes
-        }
-        $len = $bytes.Length
-        if ($len -lt 128) {
-            $lenBytes = [byte]$len
-        } else {
-            $lenBytes = @()
-            $tmp = $len
-            while ($tmp -gt 0) {
-                $lenBytes = ,([byte]($tmp -band 0xFF)) + $lenBytes
-                $tmp = $tmp -shr 8
+    begin {
+        function From-Base64Url([string]$s) {
+            $s = $s.Replace('-', '+').Replace('_', '/')
+            switch ($s.Length % 4) {
+                2 { $s += '==' }
+                3 { $s += '=' }
             }
-            $lenBytes = ,([byte](0x80 -bor $lenBytes.Length)) + $lenBytes
+            [Convert]::FromBase64String($s)
         }
-        return ,0x02 + $lenBytes + $bytes
-    }
 
-    # Encode ASN.1 SEQUENCE
-    function Encode-Sequence($elements) {
-        $body = $elements -join '' | ForEach-Object { }
-        $body = -join ($elements | ForEach-Object { [System.Text.Encoding]::ASCII.GetString($_) })
-    }
-
-    # Build PKCS#1 structure (ASN.1 DER SEQUENCE of 9 integers)
-    $ints = @(
-        Encode-Integer @(0)             # version
-        (Encode-Integer $nBytes)
-        (Encode-Integer $eBytes)
-        (Encode-Integer $dBytes)
-        (Encode-Integer $pBytes)
-        (Encode-Integer $qBytes)
-        (Encode-Integer $dpBytes)
-        (Encode-Integer $dqBytes)
-        (Encode-Integer $qiBytes)
-    )
-
-    $body = @()
-    foreach ($i in $ints) { $body += $i }
-    $len = $body.Length
-    if ($len -lt 128) {
-        $lenBytes = [byte]$len
-    } else {
-        $lenBytes = @()
-        $tmp = $len
-        while ($tmp -gt 0) {
-            $lenBytes = ,([byte]($tmp -band 0xFF)) + $lenBytes
-            $tmp = $tmp -shr 8
+        function Encode-Length([int]$len) {
+            if ($len -lt 128) { return ,([byte]$len) }
+            $bytes = @()
+            $v = $len
+            while ($v -gt 0) {
+                $bytes = ,([byte]($v -band 0xFF)) + $bytes
+                $v = $v -shr 8
+            }
+            return ,([byte](0x80 -bor $bytes.Length)) + $bytes
         }
-        $lenBytes = ,([byte](0x80 -bor $lenBytes.Length)) + $lenBytes
+
+        function Concat-Bytes([byte[][]]$parts) {
+            $list = New-Object System.Collections.Generic.List[byte]
+            foreach ($p in $parts) { $list.AddRange($p) }
+            ,$list.ToArray()
+        }
+
+        function Encode-Integer([byte[]]$bytes) {
+            if ($null -eq $bytes -or $bytes.Length -eq 0) { $bytes = ,0x00 }
+            if (($bytes[0] -band 0x80) -ne 0) { $bytes = ,0x00 + $bytes }
+            $tag = ,0x02
+            $len = Encode-Length $bytes.Length
+            Concat-Bytes @($tag, $len, $bytes)
+        }
+
+        function Encode-Sequence([byte[]]$body) {
+            $tag = ,0x30
+            $len = Encode-Length $body.Length
+            Concat-Bytes @($tag, $len, $body)
+        }
+
+        function Wrap-Base64([string]$s, [int]$width = 64) {
+            $sb = New-Object System.Text.StringBuilder
+            for ($i = 0; $i -lt $s.Length; $i += $width) {
+                $chunkLen = [Math]::Min($width, $s.Length - $i)
+                [void]$sb.AppendLine($s.Substring($i, $chunkLen))
+            }
+            $sb.ToString().TrimEnd("`r","`n")
+        }
     }
-    $der = ,0x30 + $lenBytes + $body
 
-    # Base64 encode with 64-char wrapping
-    $b64 = [Convert]::ToBase64String($der)
-    $wrapped = ($b64.ToCharArray() -split "(.{1,64})" | Where-Object {$_ -ne ""}) -join "`n"
+    process {
+        if ($Format -ne "PKCS1") { throw "Only PKCS1 is supported in this function." }
 
-    $pem = "-----BEGIN RSA PRIVATE KEY-----`n$wrapped`n-----END RSA PRIVATE KEY-----"
-    return $pem
-}
+        # Decode JWK fields (Base64URL)
+        $nBytes  = From-Base64Url $Jwk.n
+        $eBytes  = From-Base64Url $Jwk.e
+        $dBytes  = From-Base64Url $Jwk.d
+        $pBytes  = From-Base64Url $Jwk.p
+        $qBytes  = From-Base64
