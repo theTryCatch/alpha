@@ -1,85 +1,49 @@
-function Export-RsaPrivateKeyPkcs1Pem {
+function Convert-JwkToPem {
     param(
-        [System.Security.Cryptography.RSACryptoServiceProvider]$rsa,
-        [string]$path
+        [Parameter(Mandatory)]
+        [pscustomobject]$Jwk,
+
+        [string]$OutputPath = $null
     )
 
-    # Export parameters
-    $params = $rsa.ExportParameters($true)
-
-    # Helper: encode ASN.1 INTEGER
-    function Encode-Integer([byte[]]$bytes) {
-        if ($bytes[0] -ge 0x80) {
-            $bytes = ,0x00 + $bytes
+    # Base64Url → Byte[]
+    function From-Base64Url([string]$str) {
+        $s = $str.Replace('-', '+').Replace('_', '/')
+        switch ($s.Length % 4) {
+            2 { $s += '==' }
+            3 { $s += '=' }
         }
-        $len = $bytes.Length
-        ,0x02 + ,$len + $bytes
+        return [Convert]::FromBase64String($s)
     }
 
-    # Encode sequence (PKCS#1 structure)
-    $list = @()
-    $list += (Encode-Integer ( ))                          # version
-    $list += (Encode-Integer ($params.Modulus))
-    $list += (Encode-Integer ($params.Exponent))
-    $list += (Encode-Integer ($params.D))
-    $list += (Encode-Integer ($params.P))
-    $list += (Encode-Integer ($params.Q))
-    $list += (Encode-Integer ($params.DP))
-    $list += (Encode-Integer ($params.DQ))
-    $list += (Encode-Integer ($params.InverseQ))
-
-    $seq = ,0x30 + ,([byte]($list.Length)) + $list
-
-    # Base64 encode
-    $b64 = [System.Convert]::ToBase64String($seq, 'InsertLineBreaks')
-    $pem = "-----BEGIN RSA PRIVATE KEY-----`n$b64`n-----END RSA PRIVATE KEY-----"
-
-    Set-Content -Path $path -Value $pem -Encoding ascii
-}
-
-# Example usage:
-$cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -like "*YourCN*" }
-$rsa = [System.Security.Cryptography.RSACryptoServiceProvider]$cert.PrivateKey
-
-Export-RsaPrivateKeyPkcs1Pem -rsa $rsa -path ".\private_pkcs1.pem"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function Export-RsaPublicKeyPkcs1Pem {
-    param(
-        [System.Security.Cryptography.RSACryptoServiceProvider]$rsa,
-        [string]$path
-    )
-
-    $params = $rsa.ExportParameters($false)
-
-    function Encode-Integer([byte[]]$bytes) {
-        if ($bytes[0] -ge 0x80) {
-            $bytes = ,0x00 + $bytes
-        }
-        ,0x02 + ,$bytes.Length + $bytes
+    # Decode fields
+    $rsaParams = [System.Security.Cryptography.RSAParameters]@{
+        Modulus  = From-Base64Url $Jwk.n
+        Exponent = From-Base64Url $Jwk.e
+        D        = From-Base64Url $Jwk.d
+        P        = From-Base64Url $Jwk.p
+        Q        = From-Base64Url $Jwk.q
+        DP       = From-Base64Url $Jwk.dp
+        DQ       = From-Base64Url $Jwk.dq
+        InverseQ = From-Base64Url $Jwk.qi
     }
 
-    $list = @()
-    $list += (Encode-Integer $params.Modulus)
-    $list += (Encode-Integer $params.Exponent)
+    # Create RSA object
+    $rsa = [System.Security.Cryptography.RSACryptoServiceProvider]::new()
+    $rsa.ImportParameters($rsaParams)
 
-    $seq = ,0x30 + ,([byte]$list.Length) + $list
-    $b64 = [System.Convert]::ToBase64String($seq, 'InsertLineBreaks')
-    $pem = "-----BEGIN RSA PUBLIC KEY-----`n$b64`n-----END RSA PUBLIC KEY-----"
+    # Export PKCS#1 private key
+    $pkcs1 = $rsa.ExportRSAPrivateKey()
 
-    Set-Content -Path $path -Value $pem -Encoding ascii
+    # Encode PEM
+    $pem = "-----BEGIN RSA PRIVATE KEY-----`n"
+    $pem += [Convert]::ToBase64String($pkcs1, 'InsertLineBreaks')
+    $pem += "`n-----END RSA PRIVATE KEY-----"
+
+    if ($OutputPath) {
+        Set-Content -Path $OutputPath -Value $pem
+        return $OutputPath
+    } else {
+        return $pem
+    }
 }
-
-Export-RsaPublicKeyPkcs1Pem -rsa $rsa -path ".\public_pkcs1.pem"
