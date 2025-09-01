@@ -1,106 +1,14 @@
-function ConvertTo-Pem {
-    param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [pscustomobject]$Jwk,
+This is about customer raising cancellation and pushouts on an order with an organication called contoso. 
 
-        [ValidateSet("PKCS1")]
-        [string]$Format = "PKCS1",
+Customer can connect with the Sales person/ team with whom he was in touch with asking them about the cancellation or pushout. Or they can connect with the Customer Service team for the same.
 
-        [string]$OutputPath = $null
-    )
 
-    begin {
-        function From-Base64Url([string]$s) {
-            $s = $s.Replace('-', '+').Replace('_', '/')
-            switch ($s.Length % 4) {
-                2 { $s += '==' }
-                3 { $s += '=' }
-            }
-            [Convert]::FromBase64String($s)
-        }
+If request is raised to Sales owner then it is expected that the sales team to intimate to the customer service team. Then the customer service team will validate the cancellation/ pushout request based on the custer service agreement and terms (CSA Terms)then they forward this information to Sales team. 
 
-        function Encode-Length([int]$len) {
-            if ($len -lt 128) { return ,([byte]$len) }
-            $bytes = @()
-            $v = $len
-            while ($v -gt 0) {
-                $bytes = ,([byte]($v -band 0xFF)) + $bytes
-                $v = $v -shr 8
-            }
-            return ,([byte](0x80 -bor $bytes.Length)) + $bytes
-        }
 
-        function Concat-Bytes([byte[][]]$parts) {
-            $list = New-Object System.Collections.Generic.List[byte]
-            foreach ($p in $parts) { $list.AddRange($p) }
-            ,$list.ToArray()
-        }
+Then Sales team shall connect with the customer for negoctions; once they are done then they will again communicate to the customer service team with their decision.
+If it is approved by the sales team then customer service team will update the oracle systems by marking the order on hold if it is denied customer service team will communicate the decision to customer. Then automatically the oracle system updates will be picked by the system called Rapid Response team which proecss it's logics and prepares workbooks with in it's system. 
 
-        function Encode-Integer([byte[]]$bytes) {
-            if ($null -eq $bytes -or $bytes.Length -eq 0) { $bytes = ,0x00 }
-            if (($bytes[0] -band 0x80) -ne 0) { $bytes = ,0x00 + $bytes }
-            $tag = ,0x02
-            $len = Encode-Length $bytes.Length
-            Concat-Bytes @($tag, $len, $bytes)
-        }
+GCOps team periodically checks for the Rapid Responce updates and prepares for their process. Their process starts by downloading 4 files from the Rapid Responce application. 1. cancellation/ push out file, 2. Customer, OEM details, 3. CSA terms and 4. Contoso calendar. They will download these to a shared drive and then runs PowerQuery on top this. PowerQuey emits a file as an output. Which contains two workbooks in it named Cancellation, Pushouts. After this, GCOps validates the emitted file by the PowerQuery against the CSA Terms and then commuincate to the BU Finances with their findiing and recommendations. 
 
-        function Encode-Sequence([byte[]]$body) {
-            $tag = ,0x30
-            $len = Encode-Length $body.Length
-            Concat-Bytes @($tag, $len, $body)
-        }
-
-        function Wrap-Base64([string]$s, [int]$width = 64) {
-            $sb = New-Object System.Text.StringBuilder
-            for ($i = 0; $i -lt $s.Length; $i += $width) {
-                $chunkLen = [Math]::Min($width, $s.Length - $i)
-                [void]$sb.AppendLine($s.Substring($i, $chunkLen))
-            }
-            $sb.ToString().TrimEnd("`r","`n")
-        }
-    }
-
-    process {
-        if ($Format -ne "PKCS1") { throw "Only PKCS1 is supported in this function." }
-
-        # Decode JWK fields (Base64URL)
-        $nBytes  = From-Base64Url $Jwk.n
-        $eBytes  = From-Base64Url $Jwk.e
-        $dBytes  = From-Base64Url $Jwk.d
-        $pBytes  = From-Base64Url $Jwk.p
-        $qBytes  = From-Base64Url $Jwk.q
-        $dpBytes = From-Base64Url $Jwk.dp
-        $dqBytes = From-Base64Url $Jwk.dq
-        $qiBytes = From-Base64Url $Jwk.qi
-
-        # Build RSAPrivateKey ::= SEQUENCE { version, n, e, d, p, q, dp, dq, qi }
-        $version = Encode-Integer ([byte[]](0x00))
-        $ints = @(
-            $version,
-            (Encode-Integer $nBytes),
-            (Encode-Integer $eBytes),
-            (Encode-Integer $dBytes),
-            (Encode-Integer $pBytes),
-            (Encode-Integer $qBytes),
-            (Encode-Integer $dpBytes),
-            (Encode-Integer $dqBytes),
-            (Encode-Integer $qiBytes)
-        )
-
-        $body = Concat-Bytes $ints
-        $der  = Encode-Sequence $body
-
-        # Base64 with 64-char wrapping (JOSE-style)
-        $b64 = [Convert]::ToBase64String($der)
-        $pemBody = Wrap-Base64 $b64 64
-
-        $pem = "-----BEGIN RSA PRIVATE KEY-----`n$pemBody`n-----END RSA PRIVATE KEY-----"
-
-        if ($OutputPath) {
-            Set-Content -Path $OutputPath -Value $pem -NoNewline
-            return $OutputPath
-        } else {
-            return $pem
-        }
-    }
-}
+BU finance will run their processes on the request and shall approve or deny the customer request. They will update the same excel file and gives back to the GCOps. GCOps will updates the BU Finance provided decision in the Rapid Responce application. These changes are being monitors by the Customer Service team. They will pick up the changes from the Rapid Responce application and updates the relevant records again in the Oracle systems and communicates to the user.
