@@ -68,4 +68,39 @@ function ConvertTo-Pem {
         $eBytes  = From-Base64Url $Jwk.e
         $dBytes  = From-Base64Url $Jwk.d
         $pBytes  = From-Base64Url $Jwk.p
-        $qBytes  = From-Base64
+        $qBytes  = From-Base64Url $Jwk.q
+        $dpBytes = From-Base64Url $Jwk.dp
+        $dqBytes = From-Base64Url $Jwk.dq
+        $qiBytes = From-Base64Url $Jwk.qi
+
+        # Build RSAPrivateKey ::= SEQUENCE { version, n, e, d, p, q, dp, dq, qi }
+        $version = Encode-Integer ([byte[]](0x00))
+        $ints = @(
+            $version,
+            (Encode-Integer $nBytes),
+            (Encode-Integer $eBytes),
+            (Encode-Integer $dBytes),
+            (Encode-Integer $pBytes),
+            (Encode-Integer $qBytes),
+            (Encode-Integer $dpBytes),
+            (Encode-Integer $dqBytes),
+            (Encode-Integer $qiBytes)
+        )
+
+        $body = Concat-Bytes $ints
+        $der  = Encode-Sequence $body
+
+        # Base64 with 64-char wrapping (JOSE-style)
+        $b64 = [Convert]::ToBase64String($der)
+        $pemBody = Wrap-Base64 $b64 64
+
+        $pem = "-----BEGIN RSA PRIVATE KEY-----`n$pemBody`n-----END RSA PRIVATE KEY-----"
+
+        if ($OutputPath) {
+            Set-Content -Path $OutputPath -Value $pem -NoNewline
+            return $OutputPath
+        } else {
+            return $pem
+        }
+    }
+}
